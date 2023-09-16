@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+    
+<!-- CS559 Workbook Pages - page content &copy; 2021, Michael Gleicher -->
+<!-- This page is part of a Workbook developed for the 
+    CS559 Computer Graphics Class at the University of Wisconsin
+    https://graphics.cs.wisc.edu/Courses/559-sp2021/ -->
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../css/workbook.css">
+        <script src="../../js/resizeIFrames.js"></script>    
+    
+    
+    <script type="text">
+        (function() {
+            var i, text, code, codes = document.getElementsByTagName('code');
+            for (i = 0; i &lt; codes.length;) {
+                code = codes[i];
+                if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+                text = code.textContent;
+                if (/^\$[^$]/.test(text) && /[^$]\$$/.test(text)) {
+                    text = text.replace(/^\$/, '\\(').replace(/\$$/, '\\)');
+                    code.textContent = text;
+                }
+                if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+                    /^\$(.|\s)+\$$/.test(text) ||
+                    /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+                    code.outerHTML = code.innerHTML;  // remove <code></code>
+                    continue;
+                }
+                }
+                i++;
+            }
+            })();
+    </script>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [['$$','$$'], ['\\[','\\]']],
+            processEscapes: true,
+            processEnvironments: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            TeX: { equationNumbers: { autoNumber: "AMS" },
+                    extensions: ["AMSmath.js", "AMSsymbols.js"] }
+            }
+        });
+    </script>
+
+    </head>
+    <body>
+        <div class="container container--outer"><div class="maincolumn">
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header"><h1 class="post__title">Page 7: DeCastlejau Constructions</h1>
+		</header>
+        
+        
+        
+		<div class="content post__content clearfix"><p>Bézier curves will turn out to be polynomials of degree $n-1$. If you have 4 points, the Bézier curve is a cubic polynomial. You can look up the basis functions - just like we had basis functions for the Hermite forms. Indeed, one way to derive Bézier curves is to choose polynomial forms with the correct properties.</p>
+<p>But before we see the polynomial forms, we will look at how to construct Bézier curves geometrically.  This will give you a sense of the mathematical beauty of them. Seeing the construction makes the properties of the curves obvious, and gives good intuitions for the formulas. The construction also leads to practical algorithms since it gives us a fast way to divide the curve into two parts, so we can create divide and conquer algorithms.</p>
+<p>This material is in <a href="https://canvas.wisc.edu/files/30140455/download?download_frd=1">FCG4_Ch15.pdf (0.5mb)</a> section 15.6.1 under the heading &ldquo;Geometric Intuitions for Bézier Curves&rdquo;. But, the video <a href="https://www.youtube.com/watch?v=aVwxzDHniEw" target="_blank">The Beauty of Bezier Curves</a> shows it even better.</p>
+<h2 id="box-1-and-box-2-the-decastlejau-construction">Box 1 and Box 2: The DeCastlejau Construction</h2>
+<p>Suppose we have a Bézier curve defined by $n$ points. I&rsquo;ll just number the points 0,1,2, &hellip; It doesn&rsquo;t matter what dimension the points are in.</p>
+<p>Suppose we want to evaluate the curve for a parameter value $u$, where
+<code>$ 0 \leq u \leq 1 $</code>. What we do is:</p>
+<ol>
+<li>Between every consecutive pair of points, linearly interpolate $u$ of the way between the beginning and end.</li>
+<li>If there is more than 1 point left, repeat the process with the new set of points.</li>
+</ol>
+<p>If we start with 2 points, this is a line segment (linear interpolation between the points).</p>
+<p>If we start with 3 points, we first interpolate between points 0 and 1, and between 1 and 2. This gives us 2 new points (call them 01 and 12). Then we interpolate between 01 and 12, to get point 0112, which is our answer.</p>
+<p>Here is a picture doing this for $u=.5$:
+
+    
+    <figure class="">
+        <a href="../../drawings/decastle-3.png">
+            <img src="../../drawings/decastle-3_hu92854e4d9765e0ce6181ac0af581d2a4_7008_300x300_fit_box_3.png" alt="drawings/decastle-3.png" />
+        </a>
+    </figure>
+</p>
+<p>We start by making point 01 halfway ($u=.5$) of the way between 0 and 1, and point 12 halfway between 1 and 2. Then halfway between 01 and 12 gives us the answer. To evaluate $u=.25$, we use that for the amount we go along each line.
+
+    
+    <figure class="">
+        <a href="../../drawings/decastle-3-25.png">
+            <img src="../../drawings/decastle-3-25_hu7308bbf91b64f81382926f4583202212_8622_300x300_fit_box_3.png" alt="drawings/decastle-3-25.png" />
+        </a>
+    </figure>
+</p>
+<p>If we start with 4 points, we first interpolate between points 0 and 1, 1 and 2, and between 2 and 3. This gives us 3 new points (call them 01, 12 and 23). Then we interpolate between these to get 0112 and 1223. Then we interpolate these two points to get the final answer.</p>
+<p>Notice that we do a sequence of linear interpolations.  Between each pair of points, we linearly interpolate.</p>
+<h3 id="a-simple-example">A simple example</h3>
+<p>Here&rsquo;s a simple example to work through. Suppose we have the points (0,0), (8,0), (16,8), (24,8).
+Let&rsquo;s compute the position of the curve for $u=.5$.</p>
+<p>I&rsquo;ll do the x values first. I&rsquo;ll write them as a list [0,8,16,24]. Then with each step, each time, we take the value $u$ of the way between each pair. So&hellip; We get:<br/>
+[4,12,20]<br/>
+[8,16]<br/>
+[12]<br/>
+So we get the final x value as 12.</p>
+<p>Try this yourself to get the y value. You should get 4.</p>
+<p>Note that if we had a different value of $u$, we would just take a different combination at each step. So, for example, if we wanted 3/4 ($u=.75$), each time we take a the number 3/4 of the way between each pair, so&hellip;<br/>
+[0,8,16,24]<br/>
+[6,14,22]<br/>
+[12,20]<br/>
+[18]<br/>
+And again, you can try y yourself. I get 6 3/4.</p>
+<h3 id="seeing-this-on-curves">Seeing this on curves</h3>
+<p>Here in <a href="../../for_students/05-07-01.html" class="for_students">05-07-01.html</a> and <a href="../../for_students/05-07-01.js" class="for_students">05-07-01.js</a> is an animation where you can set $u$ to see what the construction does for 2, 3, 4 and 5 points. Move the slider to try different values of $u$ - the red dot it is the computed amout.</p>
+<iframe
+    title="05-07-01"
+    src="../../for_students/05-07-01.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<p>In this next box (<a href="../../for_students/05-07-02.html" class="for_students">05-07-02.html</a> and <a href="../../for_students/05-07-02.js" class="for_students">05-07-02.js</a>) you can drag the points around to see what happens as the points move. Use shift click to add points (they add at the end of the list), and ctrl-click (or meta-click on a Mac) to remove points.</p>
+<iframe
+    title="05-07-02"
+    src="../../for_students/05-07-02.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<p>This method is a convenient way to compute the values of Bézier curves by hand (if you can&rsquo;t remember, or don&rsquo;t want to look up, the polynomial forms). It is sometimes a useful way to implement the curves (but more often, we&rsquo;ll convert them to polynomial form). But understanding this algorithm is useful for the intuitions, but also because it shows us how to do things like divide curves (we&rsquo;ll see this in a moment).</p>
+<p>With the linear interpolations, many of the Bézier curve properties become clear. For example, because we always interpolate between points, we have to stay inside the points. The initial and final directions are can be seen at the beginning end of the process. Other properties can be shown in similar ways.</p>
+<h2 id="from-decastlejau-to-bernstein">From DeCastlejau to Bernstein</h2>
+<p>It may not be obvious, but the construction above gives polynomial forms. The forms of the polynomials for Bézier curves are called Bernstein basis polynomials. They were developed for other purposes. Dr. Bézier (and his team) realized that they could use them to get curves with all the nice properties he needed.</p>
+<p>There is an interesting history, but it seems like the two approaches (the geometric construction above and the use of polynomial forms) were developed independently by different groups around the same time (and both at French car companies!).</p>
+<p>To see the equivalence, write out the expressions for the process. The line segment is easy. For the 3 point case, the algebra is fairly easy. Compute points 01 and 12 as functions of 0,1,2 and u. Then compute 0112 as using these two terms and u.</p>
+<p><code>$$\mathbf p_{01} = (1-u) \ \mathbf p_0 + u\ \mathbf p_1 \\ \mathbf p_{12} = (1-u) \ \mathbf p_1 + u\ \mathbf p_2 \\ \mathbf p_{0112} = (1-u) \ \mathbf p_{01} + u\ \mathbf p_{12} \\ \mathbf p_{0112} = (1-u) \ ((1-u) \ \mathbf p_0 + u\ \mathbf p_1) + u ((1-u) \ \mathbf p_1 + u\ \mathbf p_2)\\ \mathbf p_{0112} = (1-u)^2\ \mathbf p_0 + 2 u (1-u) \mathbf p_1 + u^2 \mathbf p_2$$</code></p>
+<p>Note that these can be written nicely as <strong>basis functions.</strong> For each control point, there is a function of $u$ that tells us the weight on the control point for a given value of $u$. For a value of $u$, the resulting position is a linear combination of the control points (where the weights are determined by potentially non-linear functions of $u$).</p>
+<p>Here is a video (<a href="https://mediaspace.wisc.edu/media/1_b45evtd7" target="_blank">DeCastlejau 4</a>) doing the derivation on the whiteboard. (optional)</p>
+<h2 id="dividing-bézier-curves">Dividing Bézier Curves</h2>
+<p>The DeCastlejau construction also provides a method to divide a Bézier curve into two smaller Bézier curves, each with the same degree (and number of points) as the original.</p>
+<p>To split a Bézier curve at the position $u$, we perform the DeCastlejau construction to determine the position of the points for $u$. The points for the first curve are the starting point of each line up to the new point (including the new point). The second curve starts at the new point. Its other points are the ends of all the line segments after it.</p>
+<p>As an example, suppose we have a Bézier curve with control points <code>$\mathbf p_0, \mathbf p_1, \mathbf p_2$</code> (as in the previous box). If we divide the curve at value u, we get two new curves. One with points (<code>$\mathbf p_0, \mathbf p_{01}, \mathbf p_{0112}$</code>) and one with points (<code>$\mathbf p_{0112},\mathbf p_{12},\mathbf p_{2}$</code>).</p>
+<p>Figure 15.17 in Foundations of Computer Graphics shows this for a cubic (4 point) Bézier curve for value $u$=.5. The book&rsquo;s notation uses A, B, C and D for the points, so the old curve is (A,B,C,D) and the new curves are (A,AB,AC,AD) and (AD,BD,CD,D). Here it is again:</p>
+
+    
+    <figure class="">
+        <a href="../../images/decastlejau.png">
+            <img src="../../images/decastlejau_hu52bb18db7eceefbd31ac5d2ffb731752_27505_600x600_fit_box_3.png" alt="/images/decastlejau.png" />
+        </a>
+    </figure>
+
+<p>Being able to divide Bézier curves into smaller pieces is really useful in order to implement algorithms to process them. We can start with a Bézier curve and divide it into smaller pieces until those pieces are small enough that we can approximate them with lines (or pixels). This gives effective algorithms for drawing them smoothly, intersecting them, etc.</p>
+<p><strong>Practice:</strong> To make sure you can do this process, take the quadratic Bézier curve with points (0,0), (0,8), (8,0) and divide it into two curves at the halfway point ($u=.5$). Your answer will be two sets of three points. Put your answer into <a href="../../for_students/05-07-03.txt" class="for_students">05-07-03.txt</a>. To motivate you, this is also practice for evaluating Bézier curves, and it is a good exam question.</p>
+<iframe
+    title="05-07-03"
+    src="../../for_students/05-07-03.txt"
+    class="includebox"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<h2 id="summary-geometric-constructions-of-bézier-curves">Summary: Geometric Constructions of Bézier Curves</h2>
+<p>The DeCastlejau construction gives us a geometric way to create Bézier curves for any number of points. The geometric construction gives intuitions of why these curves have the nice properties that they do. It also gives us an algorithm to divide the curve into pieces which is very useful.</p>
+<p>On the <a href="../../docs/8/" class="Next__Page">next page</a> we will look at another way to look at Bézier - as low order polynomials.</p>
+<p><a href="../../docs/8/" class="Next__Page">Next: Bézier Cubics </a></p>
+
+            
+
+
+        <div class="page-rubric-container">
+    <details class="page__rubric">
+    <summary>Page 7 Rubric (4 points total)</summary>
+    <br/>
+    <div class="page-rubric-grid">
+            <div class="page-rubric-grid-header rubric-box-regular">Points (4):</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-07-03</div>
+                <div class="page-rubric-grid-points rubric-box-regular">4 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">divide the Bezier curve</div></div>
+    </details>
+    </div>
+			
+			
+		</div>
+	</article>
+</main>
+
+                </div>
+                <div class="sidebar">
+<h2 class="Side_Title">Workbook 5: Curves in 2D</h2>
+<p class="Side__Note">Pages:</p>
+<ul class="Side__List">
+    <li class="Side__Item Side__Unselected"><a href="../../">Index (CS559 Workbook 5: Curves in 2D)</a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/1/">1: Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/2/">2: Piecewise Parameteric Curves and Continuity </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/3/">3: Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/4/">4: Interpolation and Hermite Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/5/">5: Cardinal Cubics and Interpolation </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/6/">6: Bézier Curves </a></li>
+        <li class="Side__Item Side__Selected"> 7: DeCastlejau Constructions </li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/8/">8: Bézier Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/9/">9: Béziers in APIs </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/10/">10: Arc-Length Parameterizations </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/11/">11: Drawing Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/12/">12: Curve review </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/13/">13: The Train: Intro </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/14/">14: The Train: Assignment </a></li>
+</ul>
+</div>
+</div>
+    </body>
+</html>

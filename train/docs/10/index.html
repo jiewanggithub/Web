@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+    
+<!-- CS559 Workbook Pages - page content &copy; 2021, Michael Gleicher -->
+<!-- This page is part of a Workbook developed for the 
+    CS559 Computer Graphics Class at the University of Wisconsin
+    https://graphics.cs.wisc.edu/Courses/559-sp2021/ -->
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../css/workbook.css">
+        <script src="../../js/resizeIFrames.js"></script>    
+    
+    
+    <script type="text">
+        (function() {
+            var i, text, code, codes = document.getElementsByTagName('code');
+            for (i = 0; i &lt; codes.length;) {
+                code = codes[i];
+                if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+                text = code.textContent;
+                if (/^\$[^$]/.test(text) && /[^$]\$$/.test(text)) {
+                    text = text.replace(/^\$/, '\\(').replace(/\$$/, '\\)');
+                    code.textContent = text;
+                }
+                if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+                    /^\$(.|\s)+\$$/.test(text) ||
+                    /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+                    code.outerHTML = code.innerHTML;  // remove <code></code>
+                    continue;
+                }
+                }
+                i++;
+            }
+            })();
+    </script>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [['$$','$$'], ['\\[','\\]']],
+            processEscapes: true,
+            processEnvironments: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            TeX: { equationNumbers: { autoNumber: "AMS" },
+                    extensions: ["AMSmath.js", "AMSsymbols.js"] }
+            }
+        });
+    </script>
+
+    </head>
+    <body>
+        <div class="container container--outer"><div class="maincolumn">
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header"><h1 class="post__title">Page 10: Arc-Length Parameterizations</h1>
+		</header>
+        
+        
+        
+		<div class="content post__content clearfix"><p>Arc length parameterization is discussed in Section 15.1.1 of <a href="https://canvas.wisc.edu/files/30140455/download?download_frd=1">FCG4_Ch15.pdf (0.5mb)</a>. <a href="https://www.youtube.com/watch?v=aVwxzDHniEw" target="_blank">The Beauty of Bezier Curves</a> has a nice animated explanation, including the approximation methods I describe here.</p>
+<h2 id="box-1-arc-length-and-non-arc-length">Box 1: Arc-length and non-arc length</h2>
+<p>We usually like to define our parameterizations such that each piece goes from 0 to 1. But this means that if we move at a constant speed in the parameter, the pen would move at a variable speed. An arc-length parameterization is a parameterization where the pen moves at a constant speed (assuming the parameter changes at a constant speed).</p>
+<p>For an example in <a href="../../for_students/05-10-01.js" class="for_students">05-10-01.js</a> (<a href="../../for_students/05-10-01.html" class="for_students">05-10-01.html</a>), consider a set of line segments that go around a rectangle. Let the 4 corners be <strong>p0, p1, p2</strong> and <strong>p3</strong>, and let the rectangle be (20,20) to (120,40). So it is 20 pixels high and 100 pixels wide. The most obvious parameterization has each line segment with a unit parameterization. The top segment would be 0-1, the right segment would be 1-2, the bottom segment would be 2-3, and the left segment will be 3-4. Each segment takes the same amount of &ldquo;parameter&rdquo;, so if we change u at a constant rate, the pen will be moving 5 times faster in the horizontal segments than in the vertical ones. This is the red dot in the animation. Click the checkbox to start the animation, or scrub with the slider.</p>
+<iframe
+    title="05-10-01"
+    src="../../for_students/05-10-01.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<p>The green dot takes the same amount of time (t=0 to 4) to move around the rectangle, but it moves at a constant speed on the screen.</p>
+<p>A way to think about it: consider measuring distance along the curve (starting at the zero point). The total curve (the perimeter of the rectangle) is 240 units. We can measure how far we&rsquo;ve moved along the curve (from 0 at the start to 240 when we complete the loop). We could use this distance as the parameter (interpreting the parameter as &ldquo;move this many distance units along the curve&rdquo;). This is an <em>arc-length parameterization.</em> Because we&rsquo;re measuring distance with the parameter, if we move a certain amount of parameter, we will always move the same amount of distance along the curve.</p>
+<p>Of course, we can scale things so that the units of distance match the range we have of the parameter - we can scale the parameter that goes from 0-4 so that each unit of parameter means 60 units of distance. But, the speed remains constant as we go around the rectangle. Each animation step is .05 units of parameter, and goes 3 pixels of distance (<code>60 * .05</code>). This is the same whether we&rsquo;re on a long horizontal or a short vertical. In contrast, using the per-segment parameterization, the speed was 5 pixels per step on the horizontals (<code>100 * .05</code>), and 1 pixel per step on the verticals (<code>20 * .05</code>).</p>
+<h2 id="box-2-another-arc-length-example">Box 2: Another Arc-Length Example</h2>
+<p>Here&rsquo;s an even simpler example in <a href="../../for_students/05-10-02.js" class="for_students">05-10-02.js</a> (<a href="../../for_students/05-10-02.html" class="for_students">05-10-02.html</a>): a single, straight line segment in 1D. We have two parameterizations: <code>f(u)=u</code> and <code>g(u)=u*u</code>. Since <code>u</code> is in the range 0 to 1, both begin and end in the same place, and sweep out the same set of points (if we took infinitely small steps). With the two functions, the &ldquo;pen&rdquo; traces out the same curve (a line), but with different timings.</p>
+<iframe
+    title="05-10-02"
+    src="../../for_students/05-10-02.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<p>You should note that <code>f</code> (red dot) is an arc-length parameterization, while <code>g</code> (green dot) is not. Given a constant rate for u, <code>f</code> moves at a constant rate, whereas <code>g</code> starts out slowly and speeds up.</p>
+<p>The speed of the pen &ndash; how fast the dot moves for a given change in the parameter &ndash; is determined by the magnitude of the derivative of the position with respect to the parameter. For an arc-length parameterization, this is constant. Note that <code>$ \partial f / \partial u = 1 $</code> &ndash; so f has the same derivative everywhere, so it meets this definition. In contrast, <code>$ \partial g / \partial u = 2u $</code>, which depends on u, and therefore changes as we move around the curve.</p>
+<h2 id="arc-length-re-parameterizations">Arc-Length Re-Parameterizations</h2>
+<p>Arc-length parameterizations are often useful, especially when we are doing animation and want to have things move at a constant speed. However, it is usually easier to define curves in a way that is not an arc-length parameterization. We can then get an arc-length parameterization by <em>re-parameterizing</em>, define a function that converts from an arc-length parameterization to the given parameterization.</p>
+<p>For example, in the second example above, we could define a &ldquo;re-parameterization function&rdquo; <code>$ u=\sqrt{s} $</code> that allows us to convert an arc-length parameterization of the line into the parameterization given by the function g.</p>
+<p>For a polyline (a connected set of line segments, as in the first example), we can implement re-parameterization by building a table. For different values of the parameter we can compute its distance from the start. We&rsquo;ll use t as the parameter that goes from 0-4, and u as the parameter that goes from 0-1 for each individual segment:</p>
+<table>
+<thead>
+<tr>
+<th>t</th>
+<th>distance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1</td>
+<td>100</td>
+</tr>
+<tr>
+<td>2</td>
+<td>120</td>
+</tr>
+<tr>
+<td>3</td>
+<td>220</td>
+</tr>
+<tr>
+<td>4</td>
+<td>240</td>
+</tr>
+</tbody>
+</table>
+<p>Now, given a distance, we can figure out the appropriate value of t. For example, if we want to know the parameter value for s=170, we can see that it falls between 120 and 220 in the table. Since it&rsquo;s half-way between 120 and 220, we know that it should be half-way between the corresponding t values (since we are doing linear interpolation). So, s=170 corresponds to t=2.5.</p>
+<p>This works out easily for line segments, since we know that linear interpolation works (half-way in distance is half-way in parameter space), and that we only need entries in the table for the break points (where we switch segments), since linear interpolation holds between them.</p>
+<p>For more complicated, non-linear functions, we can approximate the re-parameterization function by sampling: we pick a set of values for t, compute the positions for each of these parameter values (which we can do because we have the parametric function), and then use the polyline connecting these points to approximate the distance. The larger the number of values of t we sample, the better the approximation that we get.</p>
+<p>Here&rsquo;s an example for a parabola <code>$ f(u)=(100*u,100*u^2) $</code>:</p>
+<table>
+<thead>
+<tr>
+<th>t</th>
+<th>x</th>
+<th>y</th>
+<th>distance (to previous)</th>
+<th>total distance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>N/A</td>
+<td>0</td>
+</tr>
+<tr>
+<td>.2</td>
+<td>20</td>
+<td>4</td>
+<td>20.4</td>
+<td>20.4</td>
+</tr>
+<tr>
+<td>.4</td>
+<td>40</td>
+<td>16</td>
+<td>23.3</td>
+<td>43.7</td>
+</tr>
+<tr>
+<td>.6</td>
+<td>60</td>
+<td>36</td>
+<td>28.3</td>
+<td>72.0</td>
+</tr>
+<tr>
+<td>.8</td>
+<td>80</td>
+<td>64</td>
+<td>34.4</td>
+<td>106.4</td>
+</tr>
+<tr>
+<td>1</td>
+<td>100</td>
+<td>100</td>
+<td>41.2</td>
+<td>147.6</td>
+</tr>
+</tbody>
+</table>
+<p>If we wanted to know where halfway in distance was (s = 147.6 / 2 = 73.8), we look it up in the table and see that it&rsquo;s between t=.6 and t=.8. Since it is (73.8-72)/(106.4-72)=.052 of the way between rows, we can approximate that as .052*.2 +.6 = .61. Note that .2 is the step between rows of t.</p>
+<p>You&rsquo;ll get to implement this to arc-length parameterize the train track when we do that later in the workbook.</p>
+<h2 id="box-3--arc-length-parameterize-me">Box 3:  Arc-Length Parameterize Me</h2>
+<p>Function <code>myTri</code> in <a href="../../for_students/05-10-03.js" class="for_students">05-10-03.js</a> (<a href="../../for_students/05-10-03.html" class="for_students">05-10-03.html</a>) goes around a 50, 120, 130 right triangle (similar to a 5,12,13 triangle), but not in an arc-length parameterization. That&rsquo;s the red dot. Fill in the function <code>myTriAL</code> that goes around the same triangle, but with an arc length parameterization. You only need to modify <code>myTriAL</code>. You may use other functions defined in the file. If things are working correctly, the green dot will go around the triangle at a constant speed when you click the &ldquo;run&rdquo; checkbox (whereas the red dot speeds up and slows down).</p>
+<iframe
+    title="05-10-03"
+    src="../../for_students/05-10-03.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<h2 id="arc-length-parameterizations">Arc-Length Parameterizations</h2>
+<p>Arc length parameterizations are a tricky concept.</p>
+<p>Consider what &ldquo;arc length&rdquo; is (before we get to parameterization): it is the length along the curve. Imagine if you wrap a tape measure along the curve to measure how &ldquo;long it is&rdquo;; or you straighten out the curve to measure how long it is.</p>
+<p>Given the idea of arc-length, you can think about its connection to parameterizations. Normally, we think about the length of the whole curve. But, given a curve $\mathbf{f}(u)$, we could consider the &ldquo;first part of the curve starting at 0 and going to $u$&rdquo;, and create a new function $a(u)$ which is the arc length of that curve. Every parameter value $u$ corresponds to some distance $a(u)$.</p>
+<p>Arc length parameterization reverses this process: we use the distance along the curve as the parameter. We specify the distance $s$ (the arc length parameter), and compute the &ldquo;regular parameter&rdquo; from this using the inverse of the $a$ function above, $u=a^{-1}(s).$ Because this function changes from one parameterization to another, we call it a <em>reparameterization</em>. You could imagine a new &ldquo;curve function&rdquo; $\mathbf{f_s}(s)=\mathbf{f}(a^{-1}(u))$ that is an <em>arc length parameterization</em> of the original $\mathbf{f}$ - it&rsquo;s the same curve, except with an arc length parameter.</p>
+<p>You should notice that doing arc length parameterization (or reparameterization) requires not just finding the arc length function $a(u)$, but its inverse. Computing the arc length is hard enough - it requires solving an integral to compute the length, which usually cannot be done analytically. In practice, we usually estimate $a(u)$ using numerical techniques, and estimate it&rsquo;s inverse using numerical techniques.</p>
+<h3 id="why-use-arc-length-parameterization">Why use arc length parameterization?</h3>
+<p>It may be best to think in terms of the &ldquo;pen&rdquo; as a moving object. With a regular parameterization, the curve may speed up and slow down. With an arc-length parameterization, the &ldquo;speed&rdquo; (the magnitude of the velocity) is constant.</p>
+<p>Consider a simple example: a cubic <code>$\mathbf{f}(u)=[u,u^2]$</code>. The 1st derivative of this curve (tangent, or velocity if we think about the curve as the pen moving along the curve) is $\mathbf{f&rsquo;}(u)=[1,2u]$. At the beginning of the curve the velocity is [1,0], at the end it is [1,1]. The pen &ldquo;sped up&rdquo; as it moves along the curve.</p>
+<p>Another way to think about it: if we take uniform steps in $u$, the steps we take in the world will be differently sized. Here&rsquo;s a simple example, taking 10 steps along $u$ (0, .1, etc) and drawing this curve. (see <a href="../../for_students/05-12-03.html" class="for_students">05-12-03.html</a> and <a href="../../for_students/05-12-03.js" class="for_students">05-12-03.js</a>). Notice how the steps towards the end are longer than the steps at the beginning.</p>
+<iframe
+    title="05-10-04"
+    src="../../for_students/05-10-04.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+<p>An arc length parameterization would trace the same curve, but with even steps. The way to think about it is a way to change parameters - we make $s$ (the arc length parameter) move in even steps, and compute the corresponding $u$ values. We just need to come up with a reparameterization function $u=g(s)$ that does this. We can think of $s$ as being distance along the curve (hence the name arc-length parameterization).</p>
+<p>In general, these functions are hard to derive analytically - we need to use numerical approximations. Even for this really simple parabola, the arc-length is a complicated function. Above, we looked at how to compute a table of approximate arclengths to approximate $s$ (distance along the curve) from $u$. Given the table, we can use lookups and interpolation to find the inverse.</p>
+<h2 id="summary-arc-length-parameterization">Summary: Arc-Length Parameterization</h2>
+<p>Hopefully, you now have an intuition for what arc-length parameterization is, so you can read the mathematical definition in the textbook. You&rsquo;ll need it next week to make the train.</p>
+<p>Now, on to <a href="../../docs/11/" class="Next__Page">Page 11: Drawing Curves</a>!</p>
+
+            
+
+
+        <div class="page-rubric-container">
+    <details class="page__rubric">
+    <summary>Page 10 Rubric (5 points total)</summary>
+    <br/>
+    <div class="page-rubric-grid">
+            <div class="page-rubric-grid-header rubric-box-regular">Points (5):</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-10-03</div>
+                <div class="page-rubric-grid-points rubric-box-regular">5 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">make the green dot go around the triangle with arc-length parameterization</div></div>
+    </details>
+    </div>
+			
+			
+		</div>
+	</article>
+</main>
+
+                </div>
+                <div class="sidebar">
+<h2 class="Side_Title">Workbook 5: Curves in 2D</h2>
+<p class="Side__Note">Pages:</p>
+<ul class="Side__List">
+    <li class="Side__Item Side__Unselected"><a href="../../">Index (CS559 Workbook 5: Curves in 2D)</a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/1/">1: Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/2/">2: Piecewise Parameteric Curves and Continuity </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/3/">3: Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/4/">4: Interpolation and Hermite Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/5/">5: Cardinal Cubics and Interpolation </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/6/">6: Bézier Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/7/">7: DeCastlejau Constructions </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/8/">8: Bézier Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/9/">9: Béziers in APIs </a></li>
+        <li class="Side__Item Side__Selected"> 10: Arc-Length Parameterizations </li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/11/">11: Drawing Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/12/">12: Curve review </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/13/">13: The Train: Intro </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/14/">14: The Train: Assignment </a></li>
+</ul>
+</div>
+</div>
+    </body>
+</html>

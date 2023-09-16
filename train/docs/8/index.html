@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+    
+<!-- CS559 Workbook Pages - page content &copy; 2021, Michael Gleicher -->
+<!-- This page is part of a Workbook developed for the 
+    CS559 Computer Graphics Class at the University of Wisconsin
+    https://graphics.cs.wisc.edu/Courses/559-sp2021/ -->
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../css/workbook.css">
+        <script src="../../js/resizeIFrames.js"></script>    
+    
+    
+    <script type="text">
+        (function() {
+            var i, text, code, codes = document.getElementsByTagName('code');
+            for (i = 0; i &lt; codes.length;) {
+                code = codes[i];
+                if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+                text = code.textContent;
+                if (/^\$[^$]/.test(text) && /[^$]\$$/.test(text)) {
+                    text = text.replace(/^\$/, '\\(').replace(/\$$/, '\\)');
+                    code.textContent = text;
+                }
+                if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+                    /^\$(.|\s)+\$$/.test(text) ||
+                    /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+                    code.outerHTML = code.innerHTML;  // remove <code></code>
+                    continue;
+                }
+                }
+                i++;
+            }
+            })();
+    </script>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [['$$','$$'], ['\\[','\\]']],
+            processEscapes: true,
+            processEnvironments: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            TeX: { equationNumbers: { autoNumber: "AMS" },
+                    extensions: ["AMSmath.js", "AMSsymbols.js"] }
+            }
+        });
+    </script>
+
+    </head>
+    <body>
+        <div class="container container--outer"><div class="maincolumn">
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header"><h1 class="post__title">Page 8: Bézier Cubics</h1>
+		</header>
+        
+        
+        
+		<div class="content post__content clearfix"><p>So far, we&rsquo;ve described Bézier curves as these very general things. They can be any degree and give us a whole bunch of nice properties.</p>
+<p>In computer graphics practice, we almost always use cubic and quadratic Béziers. To it makes sense to focus on them. Quadratics are less common then cubics: they were used in places where efficiency was critical (like drawing fonts).</p>
+<p>Cubics are a good tradeoff for computer graphics: they are flexible enough to provide for $C(1)$ continuity, but not much bigger than is necessary. Cubic Béziers have a nice parallel to Hermite cubics that we learned about earlier in the workbook.</p>
+<h2 id="cubic-bézier-curves">Cubic Bézier Curves</h2>
+<p>Hermite cubics are convenient because they make it easy to build $C(1)$ curves from pieces. We just need to match the end of one segment to the beginning of the next.</p>
+<p>But, if you wanted to make a user interface for a Hermite cubic, you&rsquo;d have a problem: how do you specify the derivative? The end points are points in the space of the curve, but the derivatives are something different.</p>
+<p>A simple solution might be to do something like what we did to draw the tangent vectors on page 1: we can create a new point that is at the end of the tangent vector if the tangent vector starts at the curve end point. There&rsquo;s another issue that the tangent vector is probably too long to be convenient, so we need to scale it down. When we drew the tangents on page 1, we scaled them by 40%, but that was arbitrary. And we can point the end tangent backwards, so we have symmetry. In other words, we can map the four &ldquo;controls&rdquo; of a Hermite cubic (<code>$\mathbf{h_0}, \mathbf{h_1}, \mathbf{h'_0}, \mathbf{h'_1}$</code>) to four &ldquo;control points&rdquo; as:
+<code>$$\begin{aligned} \mathbf{p0} = &amp; \mathbf{h0} \\  \mathbf{p1} = &amp; \mathbf{h0} + \frac{1}{3} \mathbf{h'_0} \\ \mathbf{p2} = &amp; \mathbf{h1} - \frac{1}{3} \mathbf{h'_1} \\ \mathbf{p3} = &amp; \mathbf{h1}\end{aligned}$$</code></p>
+<p>Or, as a picture:</p>
+
+        <a href="../../images/bezier.png">
+            <img src="../../images/bezier.png" />
+        </a>
+
+
+<p>These curve pieces are cubic Bézier segments.</p>
+<p>Note that the picture in the book (Figure 15.10) is wrong: since the tangent arrows are 3 times the difference in the control points, they should be longer, not shorter.</p>
+<p>It is probably easier to think of the curve tangents in terms of the Bézier points:
+<code>$$ \mathbf{f'}(0) = \mathbf{h'_0} = 3 (\mathbf{p_1}-\mathbf{p_0})$$</code></p>
+<p>The connection between cubic Bézier segments and Hermite segments makes them easy to convert. If we have a Hermite segment (or can get one, from some other cubic form like a cardinal), we can easily convert to Bézier form. This will be particularly useful because APIs usually support Béziers.</p>
+<p>The scaling factor 3 is not arbitrary: it is the degree of the polynomial, or $n-1$ (since we like to talk about Bézier segments in terms of the number of points). For quadratic Bézier curves, the scaling factor is 2. (the tangent vector is twice the vector from the first to the second point).</p>
+<h2 id="the-bézier-blending-functions">The Bézier blending functions</h2>
+<p>As we&rsquo;ve discussed, it is convenient to write the equations for polynomial curves as basis funciton curves, such that each control point is multiplied by a blending function. For cubic Béziers this would be:
+<code>$$ \mathbf{f}(u)= b_{0,3}(u)\ \mathbf{p_0} + b_{1,3}(u)\ \mathbf{p_1} + b_{2,3}(u)\ \mathbf{p_2} + b_{3,3}(u)\ \mathbf{p_3} $$</code></p>
+<p>Here, the $\mathbf{p_i}$ are the control points, and the $b_{i,3}$ are the Bezier blending functions. Notice that we wrote them with two subscripts: the second one (3) tells us that we want the blending functions of degree 3. Each blending function will be a cubic polynomial, so the overall function $\mathbf{f}$ is also a cubic polynomial.</p>
+<p>We can write this more generally for any degree:</p>
+<p><code>$$ \mathbf{f}(u)= \sum_{i=0}^d b_{i,d}(u)\ \mathbf{p_i}$$</code></p>
+<p>Of course, the big question is &ldquo;what are these Bézier blending functions.&rdquo; It turns out they have a very simple form:</p>
+<p><code>$$ b_{k,n}(u) = C(n,k)\ u^k\ (1-u)^{(n-k)}$$</code></p>
+<p>Where $C(n,k)$ are the binomial coefficients</p>
+<p><code>$$ C(n,k) = \frac{n!}{k!\ (n-k)!}$$</code></p>
+<p>These basis functions are also known as the Bernstein Basis Polynomials.</p>
+<h2 id="connecting-bézier-segments">Connecting Bézier Segments</h2>
+<p>In Computer Graphics, we typically create complicated shapes by connecting low-degree pieces. Most often, we use cubics.</p>
+<p>With Bézier curves, we can control the continuity when we put two segments (each a Bézier curve) together.</p>
+<ul>
+<li>We can get $C(0)$ continuity by making sure that the last control point of the first segment is the same as the first control point of the second segment.</li>
+<li>We can get $G(1)$ continuity by having the last two points of the first segment and the first two points of the second segment be co-linear.</li>
+<li>We can get $C(1)$ continuity by having the vector between the last two points of the first segment be equal to the vector between the first two points of the second segment.</li>
+</ul>
+<p>These continuity conditions work no matter how many points the Bézier curves have.</p>
+<p>Note: with cubic Bézier curves, we cannot get better than C(1) continuity. The video <a href="https://www.youtube.com/watch?v=jvPPXbo87ds" target="_blank">The Continuity of Splines</a> has a nice animated explanation.</p>
+<h2 id="general-bézier-curves">General Bézier Curves</h2>
+<p>Cubic Bézier curves are a specific case: Bézier curves can be created for any degree. A first degree (two points) Bézier curve is a line segment. We can have degree 2 (quadratic, 3 points), degree 3 (cubic, 4 points), or any higher degree Bézier curves.</p>
+<p>Bézier curves have many useful properties. These are described in the book, but they are so important, we will repeat them here:</p>
+<ol>
+<li>A Bézier curve can be constructed for any number of points <code>$n&gt;1$</code>.</li>
+<li>A Bézier curve with $n$ control points is an $n-1$ degree polynomial.</li>
+<li>Bézier curves are parameterized for $u$ in the range 0 to 1.</li>
+<li>A Bézier curve <strong>interpolates</strong> its first and last points. That is, at $u$=0, it has the value of its first point and for $u$=1 it has the value of its last point.</li>
+<li>Bézier curves are <strong>symmetric</strong>. If you reverse the order you get the same curve backwards. The parameter goes in the opposite direction.</li>
+<li>The first derivative at the beginning of the curve ($u$=0) is proportional to the vector between the first and second point. By symmetry, the first derivative at the end of the curve ($u$=1) is proportional to the vector between the last points. The scaling factor is the degree of the curve. So for a cubic curve, the tangent vector is three times the vector between the first two points.</li>
+<li>The Bézier curve is bounded by the <strong>convex hull</strong> of its control points. If you make a polygon from the control points, the curve stays inside of it.</li>
+<li>Bézier curves are <strong>affine invariant</strong> &ndash; the affine transform of a Bézier curve is the curve created by performing the transform on the control points.</li>
+<li>Bézier curves are <strong>variation diminishing.</strong> A Bézier curve has fewer &ldquo;wiggles&rdquo; than it does control points.</li>
+</ol>
+<h2 id="really-using-bézier-curves">Really using Bézier Curves</h2>
+<p>On the <a href="../../docs/9/" class="Next__Page">next page</a>, we will discuss how Bézier curves are presented in APIs.</p>
+<p><a href="../../docs/9/" class="Next__Page">Next: Béziers in APIs </a></p>
+
+            
+
+<div>
+        <i>There are no points associated with this page.</i>
+    </div>
+			
+			
+		</div>
+	</article>
+</main>
+
+                </div>
+                <div class="sidebar">
+<h2 class="Side_Title">Workbook 5: Curves in 2D</h2>
+<p class="Side__Note">Pages:</p>
+<ul class="Side__List">
+    <li class="Side__Item Side__Unselected"><a href="../../">Index (CS559 Workbook 5: Curves in 2D)</a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/1/">1: Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/2/">2: Piecewise Parameteric Curves and Continuity </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/3/">3: Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/4/">4: Interpolation and Hermite Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/5/">5: Cardinal Cubics and Interpolation </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/6/">6: Bézier Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/7/">7: DeCastlejau Constructions </a></li>
+        <li class="Side__Item Side__Selected"> 8: Bézier Cubics </li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/9/">9: Béziers in APIs </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/10/">10: Arc-Length Parameterizations </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/11/">11: Drawing Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/12/">12: Curve review </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/13/">13: The Train: Intro </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/14/">14: The Train: Assignment </a></li>
+</ul>
+</div>
+</div>
+    </body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+    
+<!-- CS559 Workbook Pages - page content &copy; 2021, Michael Gleicher -->
+<!-- This page is part of a Workbook developed for the 
+    CS559 Computer Graphics Class at the University of Wisconsin
+    https://graphics.cs.wisc.edu/Courses/559-sp2021/ -->
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../css/workbook.css">
+        <script src="../../js/resizeIFrames.js"></script>    
+    
+    
+    <script type="text">
+        (function() {
+            var i, text, code, codes = document.getElementsByTagName('code');
+            for (i = 0; i &lt; codes.length;) {
+                code = codes[i];
+                if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+                text = code.textContent;
+                if (/^\$[^$]/.test(text) && /[^$]\$$/.test(text)) {
+                    text = text.replace(/^\$/, '\\(').replace(/\$$/, '\\)');
+                    code.textContent = text;
+                }
+                if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+                    /^\$(.|\s)+\$$/.test(text) ||
+                    /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+                    code.outerHTML = code.innerHTML;  // remove <code></code>
+                    continue;
+                }
+                }
+                i++;
+            }
+            })();
+    </script>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [['$$','$$'], ['\\[','\\]']],
+            processEscapes: true,
+            processEnvironments: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            TeX: { equationNumbers: { autoNumber: "AMS" },
+                    extensions: ["AMSmath.js", "AMSsymbols.js"] }
+            }
+        });
+    </script>
+
+    </head>
+    <body>
+        <div class="container container--outer"><div class="maincolumn">
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header"><h1 class="post__title">Page 1: Curves</h1>
+		</header>
+        
+        
+        
+		<div class="content post__content clearfix"><p><a href="https://canvas.wisc.edu/files/30140455/download?download_frd=1">FCG4_Ch15.pdf (0.5mb)</a> and the lectures describe multiple ways to define curves. We are going to focus on parametric curves in this workbook. You still need to know about subdivision and implicit representations. (we&rsquo;ll talk about subdivision more later in the class)</p>
+<p>Think of curves as something you can draw with a pen. For this workbook, we&rsquo;ll be considering curves in 2D (so the tip on the pen is on a piece of paper). Almost everything applies to curves in higher dimensions (for example, if we recorded the position of the pen in 3D space).</p>
+<p>As in the reading and lectures, there are two different &ldquo;mathematical&rdquo; definitions of curves.</p>
+<ol>
+<li>The set of points (i.e., the places the pen went over the time of drawing)</li>
+<li>The mapping from time to position (i.e., the movement of the pen)</li>
+</ol>
+<p>To see the difference: imagine tracing the same line twice. The first time, you go slowly at an even speed; the second time you start slowly and speed up. These are the same curve, according to definition 1, but different curves according to definition 2. Generally, we will use definition 1, and refer to the different mappings as different <strong>parameterizations</strong> of the same curve.</p>
+<h2 id="box-1-parametric-curves-in-2d">Box 1: Parametric Curves in 2D</h2>
+<p>A parametric curve (in 2D) is a shape represented by a function <code>$f(u)$</code>, which returns 2D values. We can think of it as either <code>$\mathbf x=f(u)$</code> or as separate functions for each dimension, <code>$x=f_x(u), y=f_y(u)$</code>.</p>
+<p>The parameter $u$ of this function is the &ldquo;free parameter&rdquo; and it goes over some range. The curve maps the interval (the range of the parameter) to a set of points in 2D.</p>
+<p>To define such a function, we will need to know the range of its input parameter. We will typically use the symbol <code>u</code> for an input parameter that goes from 0 to 1.</p>
+<p>Restricting the input range to [0, 1] causes no loss of generality - we can always shift or scale the parameter to a different range inside our function.</p>
+<p><a href="../../for_students/05-01-01.js" class="for_students">05-01-01.js</a> (<a href="../../for_students/05-01-01.html" class="for_students">05-01-01.html</a>) has examples of some curves:</p>
+<iframe
+    title="05-01-01"
+    src="../../for_students/05-01-01.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<p>You can look for the parametric functions in <a href="../../for_students/05-01-01.js" class="for_students">05-01-01.js</a>, but the actual code is in <a href="../../for_students/05-01-curves.js" class="for_students">05-01-curves.js</a>. You should also look at the <code>plotter</code> function. Various parametric functions are defined elsewhere in the file, and then passed into the plotter via its <code>func</code> parameter. This allows the plotter to draw any parametric function whose input ranges from 0 to 1. Notice that given a <code>u</code> value, each parametric function returns a list of 4 values: 2 for the position (x,y), and 2 for the tangent (x&rsquo;,y&rsquo;).</p>
+<p>Notice that the first three functions all draw the same line segment - however, the point moves differently. Notice that in the third line segment, the point starts out slowly and speeds up.</p>
+<p>The circle and parabola should not be surprises.</p>
+<p>The V shaped curve is effectively two line segments, with an if statement that switches between them at u=.5. This is an example of how we make a compound shape from simpler pieces.</p>
+<p>The last curve - the two line segments on the right - is a single curve, it is just not connected. The pen &ldquo;jumps&rdquo; at .5 (look at the way the function is defined). This is very similar to the V shape, except that rather than just changing direction at .5, the pen jumps to a different spot.</p>
+<p>If you look at the <code>plotter</code> function, you can see that these curves are actually being drawn by approximating them by a number of line segments. Canvas is actually capable of drawing all of these shapes directly, but our code emphasizes the idea that we can draw parametric curves by sampling a bunch of parameter values. We&rsquo;ll return to this idea later in the workbook.</p>
+<p>In this program, we are drawing the curves by choosing parameter values with even spacing. But this means that we need to know how many samples to use when drawing the curve. For line segments, we only need two samples: u=0 and u=1, representing the endpoints of the line segment. However, for the smoother shapes we use many segments (the circle uses 50) so that the shape looks as if it were a continuous circle. If you look carefully, you&rsquo;d see it&rsquo;s really a 50-sided polygon.</p>
+<p>For curves where there is an abrupt change (such as the abrupt change in direction in the V or the jump in position in the two lines on the right), we need to be careful to choose values around the jump. In fact, for the two lines, we are not using the plotter code (which assumes that things are connected). We will call curves where there is a sudden change <strong>discontinuous.</strong> We&rsquo;ll discuss continuity and discontinuity on a future page.</p>
+<h2 id="tangents">Tangents</h2>
+<p>The <em>tangent</em> to a curve at a particular point is the line that touches the curve at that point. Another way to think of it is that the tangent is the velocity vector of the pen. To determine the tangent at a particular point, we take the derivative of the point location (the parametric function) with respect to the parameter.</p>
+<iframe
+    title="05-01-02"
+    src="../../for_students/05-01-02.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<p>This figure is similar to Figure 1, except that we are now drawing the tangent vectors (the drawing code scales the tangents by 40% so they fit nicely in the box). Note that we did not put the tangent in for the parabola: that is left as an <strong>exercise.</strong> Have the <code>parabola</code> function in <a href="../../for_students/05-01-curves.js" class="for_students">05-01-curves.js</a> return the correct derivatives. This is good practice at doing calculus in code for curves. We&rsquo;ll do more later. (note: the <em>drawing code</em> does the 40% scaling, your function should return the actual derivatives that make up the tangent).</p>
+<p>Observe that in all cases (after you fix the derivatives for the parabola), the tangent vector points in the direction that the pen moves as the parameter goes up in value.</p>
+<p>Notice that for the first two lines the tangent is constant, while for the third line (the one that starts slowly and speeds up) the tangent grows as the point moves downward.</p>
+<p>And notice how the tangent changes abruptly for the V and disconnected lines. This is a discontinuity in the derivatives.</p>
+<h2 id="summary-parametric-functions">Summary: Parametric Functions</h2>
+<p>In this page, we looked at parametric functions and how to draw them. On <a href="../../docs/2/" class="Next__Page">Page 2: Piecewise Parameteric Curves and Continuity</a> we will look at continuity in more detail.</p>
+
+            
+
+
+        <div class="page-rubric-container">
+    <details class="page__rubric">
+    <summary>Page 1 Rubric (2 points total)</summary>
+    <br/>
+    <div class="page-rubric-grid">
+            <div class="page-rubric-grid-header rubric-box-regular">Points (2):</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-01-02</div>
+                <div class="page-rubric-grid-points rubric-box-regular">2 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">implement the correct tangent vector for the parabola</div></div>
+    </details>
+    </div>
+			
+			
+		</div>
+	</article>
+</main>
+
+                </div>
+                <div class="sidebar">
+<h2 class="Side_Title">Workbook 5: Curves in 2D</h2>
+<p class="Side__Note">Pages:</p>
+<ul class="Side__List">
+    <li class="Side__Item Side__Unselected"><a href="../../">Index (CS559 Workbook 5: Curves in 2D)</a></li>
+        <li class="Side__Item Side__Selected"> 1: Curves </li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/2/">2: Piecewise Parameteric Curves and Continuity </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/3/">3: Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/4/">4: Interpolation and Hermite Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/5/">5: Cardinal Cubics and Interpolation </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/6/">6: Bézier Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/7/">7: DeCastlejau Constructions </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/8/">8: Bézier Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/9/">9: Béziers in APIs </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/10/">10: Arc-Length Parameterizations </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/11/">11: Drawing Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/12/">12: Curve review </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/13/">13: The Train: Intro </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/14/">14: The Train: Assignment </a></li>
+</ul>
+</div>
+</div>
+    </body>
+</html>

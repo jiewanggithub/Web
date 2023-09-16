@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+    
+<!-- CS559 Workbook Pages - page content &copy; 2021, Michael Gleicher -->
+<!-- This page is part of a Workbook developed for the 
+    CS559 Computer Graphics Class at the University of Wisconsin
+    https://graphics.cs.wisc.edu/Courses/559-sp2021/ -->
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../css/workbook.css">
+        <script src="../../js/resizeIFrames.js"></script>    
+    
+    
+    <script type="text">
+        (function() {
+            var i, text, code, codes = document.getElementsByTagName('code');
+            for (i = 0; i &lt; codes.length;) {
+                code = codes[i];
+                if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+                text = code.textContent;
+                if (/^\$[^$]/.test(text) && /[^$]\$$/.test(text)) {
+                    text = text.replace(/^\$/, '\\(').replace(/\$$/, '\\)');
+                    code.textContent = text;
+                }
+                if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+                    /^\$(.|\s)+\$$/.test(text) ||
+                    /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+                    code.outerHTML = code.innerHTML;  // remove <code></code>
+                    continue;
+                }
+                }
+                i++;
+            }
+            })();
+    </script>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [['$$','$$'], ['\\[','\\]']],
+            processEscapes: true,
+            processEnvironments: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            TeX: { equationNumbers: { autoNumber: "AMS" },
+                    extensions: ["AMSmath.js", "AMSsymbols.js"] }
+            }
+        });
+    </script>
+
+    </head>
+    <body>
+        <div class="container container--outer"><div class="maincolumn">
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header"><h1 class="post__title">Page 11: Drawing Curves</h1>
+		</header>
+        
+        
+        
+		<div class="content post__content clearfix"><p>On this page, we&rsquo;ll consider how we actually program curves in practice.</p>
+<h2 id="discretizing-curves">Discretizing Curves</h2>
+<p>If we draw a parametric curve <code>$\mathbf{x} = \mathbf{f}(u)$</code>, the obvious thing to do is to pick a set of <code>$u$</code> values, find the corresponding positions <code>$\mathbf{x}$</code>, and plot those points. The simplest way to do this is to choose a number of points ahead of time, and make equally spaced <code>$u$</code> values.</p>
+<p>This approach has problems. If you pick too many <code>$u$</code> values, it is wasteful: they will all end up in the same place (because ultimately, we have finite sized pixels). If you pick too few <code>$u$</code> values, you will get gaps between the points. Worse, if the curve varies in how fast it changes (it isn&rsquo;t arc length parameterized), there may be some places where you have too many and other places where you have too few.</p>
+<p>Things look slightly better if you connect the dots with lines - no more gaps. However, if you have too few points, your curve won&rsquo;t look smooth, and if you have too many points, it is still wasteful.</p>
+<p>In this box, we want you to try out the idea of changing the number of points. We want you to draw a spiral that circles around the origin 4 times, expanding outward. Here&rsquo;s the function to use:
+<code>$$ \mathbf{x} = \mathbf{f}(u) = \left( 200 + u*180*cos(2*\pi*4*u), 200+180*u*sin(2*\pi*4*u) \right)$$</code>
+If you let <code>$u$</code> go in the range from 0 to 1, this will make a sprial that fits nicely into the 400x400 canvas in <a href="../../for_students/05-11-01.js" class="for_students">05-11-01.js</a>  and <a href="../../for_students/05-11-01.html" class="for_students">05-11-01.html</a>.</p>
+<p>Drawing the spiral is pretty easy - but, we want you to add 2 features to make it more interesting.</p>
+<ol>
+<li>First, add a checkbox on the page (<a href="../../for_students/05-11-01.html" class="for_students">05-11-01.html</a>) that switches between drawing dots for each point and connecting the dots with lines.</li>
+<li>Second, add a slider that controls the number of points that gets drawn. Make sure the slider has a range that goes from too few points (so you can see the spiral, but it looks jagged) to enough points that it looks smooth the whole way around.</li>
+</ol>
+<iframe
+    title="05-11-01"
+    src="../../for_students/05-11-01.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<p>One of the goals here is to make sure you can write programs that use sliders and checkboxes to control your graphics.</p>
+<p>If you&rsquo;re curious, here&rsquo;s what my example solution looks like:</p>
+<p>
+    
+    <figure class="">
+        <a href="../../images/spiral-dots.png">
+            <img src="../../images/spiral-dots_hu500dc595bf520aa96054fbd6062340cd_17066_250x250_fit_box_3.png" alt="/images/spiral-dots.png" />
+        </a>
+    </figure>
+ 
+     
+     <figure class="">
+         <a href="../../images/spiral-lines.png">
+             <img src="../../images/spiral-lines_hu690f816019e0a411e37702bbcd498b0c_37708_250x250_fit_box_3.png" alt="/images/spiral-lines.png" />
+         </a>
+     </figure>
+</p>
+<p>Hints:</p>
+<ul>
+<li>To see if a checkbox is checked, access its <code>checked</code> property (not its <code>value</code>).</li>
+<li>You will want to call your draw function when either the checkbox or the slider changes (use <code>onChange</code>).</li>
+<li>You can add the slider and checkbox elements in the html file.</li>
+</ul>
+<p>In this simple example (in fact, you can just look at the pictures of mine), you can see how the number of points you need varies over the length of the spiral - the fixed steps are OK near the center, but less good as you get farther outside).</p>
+<p>If you look in the <code>libs\CS559</code> directory, you will see a file called <code>inputHelpers.js</code> - this has utility functions that can help you make sliders and checkboxes. You do not need to use these utilities (in fact, we don&rsquo;t recommend it). If you want to figure out how to use them go ahead. They are there for future workbooks.</p>
+<h2 id="better-drawing">Better drawing</h2>
+<p>Fancier drawing algorithms adjust the spacing of the samples as they draw.</p>
+<p>For certain curve types (including lines, circles, and cubic Bezier curves), correct drawing algorithms compute an exact value for every pixel - you always get exactly the right number of dots. We won&rsquo;t show you these algorithms, but you can trust that the web browser does this correctly when it draws with the canvas or SVG drawing commands. For this reason, we often prefer to let Canvas (or SVG) draw Beziers (or circles or lines) for us when we want smooth curves. Indeed, if we have a curve that is not one of these other types, the best strategy is often to convert it to one of the kinds of curves that the underlying library can draw correctly.</p>
+<p>If the curve is not something that Canvas knows how to draw, we need to break it into pieces and convert the pieces to things Canvas can draw. For example, in the previous example, we approximated the spiral by a bunch of line segments. If we wanted a smoother result, we could have approximated the spiral with a set of Bezier segments. This can be tricky: we not only must compute the spiral&rsquo;s derivatives (to figure out the tangent direction), but scale them accordingly (since the spiral is divided up among a number of Bezier segments).</p>
+<p>If the curve is something that is easy to convert to cubic Bezier form (for example, a different kind of cubic segment), then using canvas Bezier drawing commands is a good idea.</p>
+<p>For something like a spiral, dividing the curve into Bezier segments still is just an approximation to the original curve. It might be a nicer approximation (since we won&rsquo;t have the jagged edges we see with line segments), but it is still an approximation.</p>
+<p>There is a tradeoff: we can make a nice approximation of a complicated curve by dividing it into very small pieces and  using simple pieces (line segments). If we use nicer pieces (like Beziers), we might need fewer pieces, but computing them may be more expensive.</p>
+<p>Advanced point opportunity for box 05-11-01: <em>warning: this is much harder than the small number of points it is worth</em></p>
+<p>Try making the spiral with Bezier segments, rather than line segments. You can use the Canvas <code>bezierCurveTo</code> command. Figuring out the derivatives of the spiral is easy - it&rsquo;s just calculus like you did on page 1 of the workbook. The harder problem is to convert these derivatives from being with respect to the parameter of the spiral to being with respect to the Bezier curve segment. Hint: with the spiral, <code>$u$</code> goes between 0 and 1, with each Bezier segment it also goes between 0 and 1. The Canvas <code>bezierCurveTo</code> command is discussed below.</p>
+<p>Note: if you implement the Bezier segments, you must have a checkbox that allows the user to switch between line segments and Beziers. If things work correctly, the spiral should look smoother when you use the curve segments.</p>
+<p>Next, <a href="../../docs/12/" class="Next__Page">Page 12: Curve review</a></p>
+
+            
+
+
+        
+        
+        
+        <div class="page-rubric-container">
+    <details class="page__rubric">
+    <summary>Page 11 Rubric (11 points total)</summary>
+    <br/>
+    <div class="page-rubric-grid">
+            <div class="page-rubric-grid-header rubric-box-regular">Points (8):</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-11-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">5 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">draw the spiral</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-11-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">1 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">checkbox control of lines</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-11-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">2 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">slider control of number of points</div>
+            <div class="page-rubric-grid-header rubric-box-bonus">Advanced points (3) 
+                 (maximum 20 can be earned in this workbook):</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-11-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">3 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">approximate spiral with Beziers, have a switch for lines/Beziers</div></div>
+    </details>
+    </div>
+			
+			
+		</div>
+	</article>
+</main>
+
+                </div>
+                <div class="sidebar">
+<h2 class="Side_Title">Workbook 5: Curves in 2D</h2>
+<p class="Side__Note">Pages:</p>
+<ul class="Side__List">
+    <li class="Side__Item Side__Unselected"><a href="../../">Index (CS559 Workbook 5: Curves in 2D)</a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/1/">1: Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/2/">2: Piecewise Parameteric Curves and Continuity </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/3/">3: Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/4/">4: Interpolation and Hermite Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/5/">5: Cardinal Cubics and Interpolation </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/6/">6: Bézier Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/7/">7: DeCastlejau Constructions </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/8/">8: Bézier Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/9/">9: Béziers in APIs </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/10/">10: Arc-Length Parameterizations </a></li>
+        <li class="Side__Item Side__Selected"> 11: Drawing Curves </li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/12/">12: Curve review </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/13/">13: The Train: Intro </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/14/">14: The Train: Assignment </a></li>
+</ul>
+</div>
+</div>
+    </body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+    
+<!-- CS559 Workbook Pages - page content &copy; 2021, Michael Gleicher -->
+<!-- This page is part of a Workbook developed for the 
+    CS559 Computer Graphics Class at the University of Wisconsin
+    https://graphics.cs.wisc.edu/Courses/559-sp2021/ -->
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../css/workbook.css">
+        <script src="../../js/resizeIFrames.js"></script>    
+    
+    
+    <script type="text">
+        (function() {
+            var i, text, code, codes = document.getElementsByTagName('code');
+            for (i = 0; i &lt; codes.length;) {
+                code = codes[i];
+                if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+                text = code.textContent;
+                if (/^\$[^$]/.test(text) && /[^$]\$$/.test(text)) {
+                    text = text.replace(/^\$/, '\\(').replace(/\$$/, '\\)');
+                    code.textContent = text;
+                }
+                if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+                    /^\$(.|\s)+\$$/.test(text) ||
+                    /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+                    code.outerHTML = code.innerHTML;  // remove <code></code>
+                    continue;
+                }
+                }
+                i++;
+            }
+            })();
+    </script>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [['$$','$$'], ['\\[','\\]']],
+            processEscapes: true,
+            processEnvironments: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            TeX: { equationNumbers: { autoNumber: "AMS" },
+                    extensions: ["AMSmath.js", "AMSsymbols.js"] }
+            }
+        });
+    </script>
+
+    </head>
+    <body>
+        <div class="container container--outer"><div class="maincolumn">
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header"><h1 class="post__title">Page 3: Cubics</h1>
+		</header>
+        
+        
+        
+		<div class="content post__content clearfix"><p>We will create complicated shapes by putting together simple pieces. We need to do this in a careful way, otherwise we won&rsquo;t get continuity.</p>
+<p>If we try to make shapes out of linear pieces (line segments), we can never do better than $C(0)$ continuity. The common thing in computer graphics is to use cubic polynomial segments. That will allow us to get $C(1)$ (or better) continuity, and also have a lot of flexibility in the shapes that we can create.</p>
+<p>We could use even higher degree polynomials (quartic polynomials, quintic polynomials, etc.). However, for many reasons, in computer graphics, cubics are usually sufficient.</p>
+<p>This material is covered in the book in Sections 15.3 through 15.5.</p>
+<h2 id="piecewise-polynomials">Piecewise Polynomials</h2>
+<p>We will be making our curves by breaking a big curve into a bunch of smaller segments, and representing each segment as a polynomial. Our curves are <strong>piecewise polynomials</strong> because each piece of them is a polynomial. Mathematicians use the term <strong>spline</strong> to refer to piecewise polynomials; however, this term sometime has other connotations.</p>
+<p>Before considering the pieces, we should be clear about how they fit together. For the moment, denote the overall curve as <code>$\mathbf{f_*}(t)$</code> for $t$ in some range. We construct this curve from a list of segments that are also curves: <code>$\mathbf{f_0}(t)$</code>, <code>$\mathbf{f_1}(t)$</code>, etc. Each of the segments applies to some portion of the &ldquo;overall time&rdquo;, so we could do something like:</p>
+<p>$\mathbf{f_*}(t) = \begin{aligned}
+\mathrm{if}\ &amp; 0 \leq t &lt; 1 \ \mathrm{then}\ \mathbf{f_0}(t) \\
+\mathrm{elif}\ &amp; 1 \leq t &lt; 2 \ \mathrm{then}\ \mathbf{f_1}(t) \\
+\mathrm{elif}\ &amp; 2 \leq t &lt; 3 \ \mathrm{then}\ \mathbf{f_2}(t) \\
+\mathrm{etc.}
+\end{aligned}
+$</p>
+<p>for however many pieces we might have, with the slight caveat that we need to deal with closing the interval at the end (so $\mathbf{f_n}$ applies over the range $n\leq t \leq n+1$).</p>
+<p>This is kind of inconvenient, since it means each segment must be defined in terms of where it goes in the overall time. It is much better (and more common) to define each segment as spanning over the range <code>$0 \leq u &lt; 1$</code> (or <code>$\leq 1$</code> if appropriate), so:</p>
+<p>$\mathbf{f_*}(t) = \begin{aligned}
+\mathrm{if}\   &amp; 0 \leq t &lt; 1 \ \mathrm{then}\ \mathbf{f_0}(t-0) \\
+\mathrm{elif}\ &amp; 1 \leq t &lt; 2 \ \mathrm{then}\ \mathbf{f_1}(t-1) \\
+\mathrm{elif}\ &amp; 2 \leq t &lt; 3 \ \mathrm{then}\ \mathbf{f_2}(t-2) \\
+\mathrm{etc.}
+\end{aligned}
+$</p>
+<p>Of course, we could choose to make the &ldquo;break points&rdquo; where we switch functions be other times, and shift and scale time accordingly so that each $\mathbf{f_i}$ gets the appropriate range.</p>
+<p>Since each of our pieces is going to be a polynomial, we know that within each piece we have continuity (for all derivatives). Therefore, we only need to be concerned about continuity at the place where the switch functions. If we want $C(0)$ continuity, we need to make sure $\mathbf{f_i}(1)=\mathbf{f_{i+1}}(0)$ (the end of one piece equals the beginning of the next). If we want $C(1)$ continuity, we need to make sure that $\mathbf{f_i&rsquo;}(1)=\mathbf{f&rsquo;_{i+1}}(0)$ (the first derivative at the end of one segment is equal to the first derivative at the beginning of the next).</p>
+<h2 id="polynomials">Polynomials</h2>
+<p>A polynomial is a function of a single parameter (in this case $t$):
+$$
+\mathbf{f}(t) = \mathbf{a_0} + \mathbf{a_1} t + \mathbf{a_2} t^2 + \cdots + \mathbf{a_d} t^d
+$$</p>
+<p>$$
+\mathbf{f}(t) = \sum_{i=0}^d \mathbf{a_i} t^i
+$$</p>
+<p>The $a_i$ are sometimes referred to as coefficients.</p>
+<p>A few simple observations:</p>
+<ol>
+<li>If we have a polynomial of <strong>degree</strong> $d$ (that is, the highest power of the polynomial is $d$, so there is a $t^d$ term), we have $d+1$ coefficients.</li>
+<li>We can write the coefficients as a vector of length $d+1.$</li>
+<li>We can think of a quadratic (a degree 2 polynomial) as a cubic (a degree 3 polynomial) with its $a_3$ coefficient as 0.</li>
+<li>While the equation is non-linear in the parameter, it is linear in the coefficients. That is, for a given value of the parameter $t$, $\mathbf{f}(t)$ is a linear equation of the coefficients $a_i$.</li>
+</ol>
+<p>There are many different was to write a polynomial. The &ldquo;coefficient form&rdquo; above is just one way to write it. For example, if we have a cubic polynomial with the coefficient vector $\mathbf{a} = (-6, 11, -6, 1)$, which gives us $\mathbf{f}(t) = t^3-6t^2+11t-6$ (we put $a_0$ first in the vector), we could also put it in the form $(t-1)(t-2)(t-3)$.</p>
+<p>This idea of having different forms of polynomials will be important. Ultimately, they are all the same polynomial, but some forms will be easier to work with than others.</p>
+<h2 id="cubics">Cubics</h2>
+<p>A cubic is a polynomial of degree 3.</p>
+<p>We write a cubic polynomial (in coefficient or canonical form) as:
+<code>$$ \mathbf f(u) = \mathbf a_0 + \mathbf a_1 u + \mathbf a_2 u^2 + \mathbf a_3 u^3 $$</code>
+denoting the coefficients as <code>$ \mathbf a_0, \mathbf a_1, \mathbf a_2, \mathbf a_3 $</code> - in boldface since they are vectors. This is a nicer notation than writing (if our vectors are 2d):
+<code>$$ f_x(u) = a_{0x} + a_{1x} u + a_{2x} u^2 + a_{3x} u^3 $$</code>
+<code>$$ f_y(u) = a_{0y} + a_{1y} u + a_{2y} u^2 + a_{3y} u^3 $$</code>
+It&rsquo;s useful to remember that we have a separate function for each dimension ($f_x$ for the x-coordinate and $f_y$ for the y-coordinate).</p>
+<p>Notice that a cubic segment has 4 coefficients. When we specify the cubic in some other way, we need to give enough information to compute these 4 things. If we give too little information or too much, it won&rsquo;t work exactly. Therefore, other representations will use 4 numbers too.</p>
+<p>Trying to control the cubic by specifying the coefficients is not easy (e.g., what values for $ \mathbf a_0, \mathbf a_1, \mathbf a_2,$ and $\mathbf a_3 $ give a desired shape?). Therefore, we almost always specify cubic curves using some other form.</p>
+<p>If we want to connect cubics, we would like to specify the beginning (where $u=0$) and end (where $u=1$). Let&rsquo;s call these points $\mathbf{p_0}$ and $\mathbf{p_1}$. If we write things in canonical form, the beginning is straightforward:
+$$\mathbf{p_0}=\mathbf{f}(0)=\mathbf{a_0}$$</p>
+<p>The end is a bit more complicated.
+$$\mathbf{p_1}=\mathbf{f}(1)=\mathbf{a_0}+\mathbf{a_1}+\mathbf{a_2}+\mathbf{a_3}$$
+The problem is that we have lots of choices, and this doesn&rsquo;t say what happens in between the end points.</p>
+<p>The solution will be to use different forms for the cubics. We&rsquo;ll specify values that are convenient, and compute the coefficients from these. Although, we can think of these different representations and simply use the polynomials in these other forms. As an analogy, if I ask you to compute $f(3)$ for the cubic polynomial in the last section, you can compute it by plugging the number into the factored form $f(t)=(t-1)(t-2)(t-3)$ without figuring out what the coefficients are.</p>
+<p>On the <a href="../../docs/4/" class="Next__Page">next page</a>, we&rsquo;ll learn about a particularly useful form for cubics. But first, a quick question to make sure you are reading.</p>
+<h3 id="a-cubic-question">A Cubic Question</h3>
+<p>To check that you are understanding things, answer this question:</p>
+<p>We would like to make a cubic curve that starts ($u=0$) at the point <code>10,5</code> and ends at the point <code>50,75</code>. Assume we write the cubic in the canonical form. Give values of the coefficients that satisfy the endpoints (there are many correct answers - give any one). Put your answers into <a href="../../for_students/05-03-01.txt" class="for_students">05-03-01.txt</a>.</p>
+<iframe
+    title="05-03-01"
+    src="../../for_students/05-03-01.txt"
+    class="includebox"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<p><a href="../../docs/4/" class="Next__Page">Next: Interpolation and Hermite Cubics </a></p>
+
+            
+
+
+        <div class="page-rubric-container">
+    <details class="page__rubric">
+    <summary>Page 3 Rubric (2 points total)</summary>
+    <br/>
+    <div class="page-rubric-grid">
+            <div class="page-rubric-grid-header rubric-box-regular">Points (2):</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-03-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">2 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">cubic coefficients question</div></div>
+    </details>
+    </div>
+			
+			
+		</div>
+	</article>
+</main>
+
+                </div>
+                <div class="sidebar">
+<h2 class="Side_Title">Workbook 5: Curves in 2D</h2>
+<p class="Side__Note">Pages:</p>
+<ul class="Side__List">
+    <li class="Side__Item Side__Unselected"><a href="../../">Index (CS559 Workbook 5: Curves in 2D)</a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/1/">1: Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/2/">2: Piecewise Parameteric Curves and Continuity </a></li>
+        <li class="Side__Item Side__Selected"> 3: Cubics </li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/4/">4: Interpolation and Hermite Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/5/">5: Cardinal Cubics and Interpolation </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/6/">6: Bézier Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/7/">7: DeCastlejau Constructions </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/8/">8: Bézier Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/9/">9: Béziers in APIs </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/10/">10: Arc-Length Parameterizations </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/11/">11: Drawing Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/12/">12: Curve review </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/13/">13: The Train: Intro </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/14/">14: The Train: Assignment </a></li>
+</ul>
+</div>
+</div>
+    </body>
+</html>

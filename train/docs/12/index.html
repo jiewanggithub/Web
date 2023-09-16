@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+    
+<!-- CS559 Workbook Pages - page content &copy; 2021, Michael Gleicher -->
+<!-- This page is part of a Workbook developed for the 
+    CS559 Computer Graphics Class at the University of Wisconsin
+    https://graphics.cs.wisc.edu/Courses/559-sp2021/ -->
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../css/workbook.css">
+        <script src="../../js/resizeIFrames.js"></script>    
+    
+    
+    <script type="text">
+        (function() {
+            var i, text, code, codes = document.getElementsByTagName('code');
+            for (i = 0; i &lt; codes.length;) {
+                code = codes[i];
+                if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+                text = code.textContent;
+                if (/^\$[^$]/.test(text) && /[^$]\$$/.test(text)) {
+                    text = text.replace(/^\$/, '\\(').replace(/\$$/, '\\)');
+                    code.textContent = text;
+                }
+                if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+                    /^\$(.|\s)+\$$/.test(text) ||
+                    /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+                    code.outerHTML = code.innerHTML;  // remove <code></code>
+                    continue;
+                }
+                }
+                i++;
+            }
+            })();
+    </script>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [['$$','$$'], ['\\[','\\]']],
+            processEscapes: true,
+            processEnvironments: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            TeX: { equationNumbers: { autoNumber: "AMS" },
+                    extensions: ["AMSmath.js", "AMSsymbols.js"] }
+            }
+        });
+    </script>
+
+    </head>
+    <body>
+        <div class="container container--outer"><div class="maincolumn">
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header"><h1 class="post__title">Page 12: Curve review</h1>
+		</header>
+        
+        
+        
+		<div class="content post__content clearfix"><p>We covered a lot about curves this week. To make sure you got everything, this page has a summary, and a few exercises to test your understanding.</p>
+<h2 id="outline-of-curve-topics">Outline of Curve Topics</h2>
+<p>The main points in the workbooks / lectures about curves:</p>
+<ol>
+<li>The idea of <strong>curves</strong>, and their basic definitions.</li>
+<li>The idea of <strong>parametric representations</strong> - where we describe curves as a function of a free parameter.</li>
+<li>The idea of <strong>tangents</strong> and, more generally, the derivatives of curves.</li>
+<li>The idea of <strong>continuity</strong>, where we talk about how curve pieces connect to make bigger curves.</li>
+<li>The idea of <strong>splines</strong> or piecewise polynomial representations, which are the most common way we represent curves in computer graphics.</li>
+<li>The idea of using <strong>cubic</strong> polynomials for the curve pieces, which is the most common thing we do in computer graphics.</li>
+<li>The idea of using <strong>Hermite</strong> interpolation to give easy control over cubics by specifying the beginning and end of each segment.</li>
+<li>The idea of using <strong>cardinal</strong> interpolation to give easy control over Hermite interpolation by computing the derivatives from the point positions. <strong>Catmull-Rom</strong> splines are an important special case.</li>
+<li>The reasons why we prefer to do <strong>interpolation</strong> by using a piecewise polynomial (like a cardinal spline), rather than fewer higher-order pieces. (this was emphasized more in the book and lecture)</li>
+<li>The reasons why we often prefer <strong>approximating</strong> curves to interpolation, to give us better control of a curve shape.</li>
+<li>The nice properties of <strong>Bézier</strong> curves that make them a very popular choice in graphics applications.</li>
+<li>The geometric derivation of Bézier with the <strong>DeCastlejau</strong> construction which provides us with intuitions for how the curves work, but also practical algorithms.</li>
+<li>The specific form of <strong>Bézier Cubics</strong>, which resemble Hermit cubics and are very common in graphics applications.</li>
+<li>The <strong>Basis Functions</strong> of Bézier curves, which provide a way to evaluate the curves and a sense of the mathematical elegance.</li>
+<li>How Bézier curves are applied in the <strong>APIs</strong> we use.</li>
+<li>The idea of <strong>arc length parameterizations</strong> of curves, where the length of the curve is used for parameterization, allowing for the parameter to have a more direct connection to location.</li>
+</ol>
+<p>These are all important, and it&rsquo;s a lot, so some practice may be worthwhile.</p>
+<h2 id="drawing-cardinal-splines">Drawing Cardinal Splines</h2>
+<p>Cardinal splines are very useful, but they are not built into the Web APIs. This isn&rsquo;t a problem because it is easy to convert Cardinal segments to Bézier segments, and APIs can draw Béziers well.</p>
+<p>To practice that, here is a Cardinal Spline to draw. In this figure there are 5 points to connect with a Cardinal spline - we&rsquo;ve drawn line segments between the points rather than Cardinals. Replace the line segments with Cardinal splines, so that the picture is $C(1)$. Use Catmull-Rom splines (cardinals with <code>t=0</code>, or <code>s=0.5</code>).</p>
+<p>There are two catches here:</p>
+<ol>
+<li>Canvas doesn&rsquo;t have Cardinal Splines - you must convert each Cardinal segment to a Bezier segment. You need to replace each of the <code>lineTo</code> commands in <a href="../../for_students/05-12-01.js" class="for_students">05-12-01.js</a> with a <code>bezierCurveTo</code> command, and compute the positions of the control points.</li>
+<li>The spline is &ldquo;looped&rdquo; - the last point connects to the first. This means when you need to get the &ldquo;next&rdquo; point after the last point, you go around the loop.</li>
+</ol>
+<iframe
+    title="05-12-01"
+    src="../../for_students/05-12-01.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+<p>Edit <a href="../../for_students/05-12-01.js" class="for_students">05-12-01.js</a> to do this exercise - you shouldn&rsquo;t need to change <a href="../../for_students/05-12-01.html" class="for_students">05-12-01.html</a>.</p>
+<p>Observe how the the cardinal spline does not fit within the original &ldquo;control polygon&rdquo;. You will have Bézier control points outside of the original cardinal control polygon - since the Bézier curve does stay inside of its control polygon.</p>
+<h2 id="beacutezier-curve-algorithms">Bézier Curve Algorithms</h2>
+<p>We discussed both algebraic ways to compute Bézier curves (the blending function polynomials), and geometric approaches.</p>
+<p>Using the blending functions may be easier/faster for computing values in a program. I find it easier to use DeCastlejau when I have to compute things by hand. The DeCastlejau algorithm is useful when we need to split curves, and it has the advantage that it provides us with the tangents as part of the computation process.</p>
+<p>To practice with using the DeCastlejau algorithm, take the curve in this figure <a href="../../for_students/05-12-02.svg" class="for_students">05-12-02.svg</a> and split it into three parts with even parameter amounts (e.g., <code>u=1/3</code> and <code>2/3</code>). Take the one curve in the picture, and replace it with 3 curves that are different colors (make the first one red, the second one green, and the third blue) - that are geometrically the same curve. We need to make separate curves because in SVG we haven&rsquo;t learned to make a single curve that is three colors. (even if you know how to do that, don&rsquo;t - we will check that your result has 3 separate <code>path</code> statements).</p>
+<iframe
+    title="05-12-02"
+    src="../../for_students/05-12-02.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+<p>Round numbers to integers (when you do the computations, you may get fractions).</p>
+<h2 id="and-now-to-make-good-use-of-this">And now to make good use of this&hellip;</h2>
+<p>Move on to <a href="../../docs/13/" class="Next__Page">Next: The Train: Intro </a> where we will do something interesting with curves.</p>
+
+            
+
+
+        
+        <div class="page-rubric-container">
+    <details class="page__rubric">
+    <summary>Page 12 Rubric (4 points total)</summary>
+    <br/>
+    <div class="page-rubric-grid">
+            <div class="page-rubric-grid-header rubric-box-regular">Points (4):</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-12-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">2 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">make a cardinal spline through the points</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-12-02</div>
+                <div class="page-rubric-grid-points rubric-box-regular">2 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">split the Bezier</div></div>
+    </details>
+    </div>
+			
+			
+		</div>
+	</article>
+</main>
+
+                </div>
+                <div class="sidebar">
+<h2 class="Side_Title">Workbook 5: Curves in 2D</h2>
+<p class="Side__Note">Pages:</p>
+<ul class="Side__List">
+    <li class="Side__Item Side__Unselected"><a href="../../">Index (CS559 Workbook 5: Curves in 2D)</a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/1/">1: Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/2/">2: Piecewise Parameteric Curves and Continuity </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/3/">3: Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/4/">4: Interpolation and Hermite Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/5/">5: Cardinal Cubics and Interpolation </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/6/">6: Bézier Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/7/">7: DeCastlejau Constructions </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/8/">8: Bézier Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/9/">9: Béziers in APIs </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/10/">10: Arc-Length Parameterizations </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/11/">11: Drawing Curves </a></li>
+        <li class="Side__Item Side__Selected"> 12: Curve review </li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/13/">13: The Train: Intro </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/14/">14: The Train: Assignment </a></li>
+</ul>
+</div>
+</div>
+    </body>
+</html>

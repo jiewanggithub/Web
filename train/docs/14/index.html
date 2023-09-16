@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+    
+<!-- CS559 Workbook Pages - page content &copy; 2021, Michael Gleicher -->
+<!-- This page is part of a Workbook developed for the 
+    CS559 Computer Graphics Class at the University of Wisconsin
+    https://graphics.cs.wisc.edu/Courses/559-sp2021/ -->
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../css/workbook.css">
+        <script src="../../js/resizeIFrames.js"></script>
+    </head>
+    <body>
+        <div class="container container--outer"><div class="maincolumn">
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header"><h1 class="post__title">Page 14: The Train: Assignment</h1>
+		</header>
+        
+        
+        
+		<div class="content post__content clearfix"><p>The last page introduced the train assignment. This page will give you the details, and then you can edit <a href="../../for_students/05-14-01.js" class="for_students">05-14-01.js</a> and <a href="../../for_students/05-14-01.html" class="for_students">05-14-01.html</a> to make your own train.</p>
+<p>We have provided a UI that gives you a Canvas window, the ability to manipulate a set of points in that window and a slider/run button that allows you to move and animate the train by controlling a parameter. You had a chance to work with this UI code in the prior workbook. You may add additional buttons to the page in order to switch features on and off, or add sliders, but you need to keep the functionality of the UI (the ability to move points, to add/delete points, to start and stop the animation, etc.). The control points must remain visible (although, you can change them to something other than black squares).</p>
+<p>Your job is to (1) create a track that goes through these points (an interpolating curve) and (2) make a train that goes around that track. There are advanced points available for drawing the track nicely, and having a train that moves in more complex ways. You are encouraged to try to make things look nice, but the focus of this assignment is on curves. The grading and requirements focus on elements that demonstrate your knowledge of using curves.</p>
+<p>Note: <strong>you must edit the text box</strong> (at the end of the page) documenting what features you have implemented.</p>
+<p>We recommend that you implement the requirements in the order below. While every feature gets points, no matter the order they are implemented, the easier, earlier features are required to do the later features.</p>
+<ol>
+<li>
+<p>Create a Cardinal Cubic Spline that passes through the control points. You should do this by converting the cardinal spline to a Bézier curve so that you can draw the curve as a Canvas path with Bézier pieces (rather than, say, approximating it as a sequence of lines).</p>
+<ul>
+<li>Note: even if you add a fancier track in a later step, your interface should have a &ldquo;simple&rdquo; checkbox that draws the track as a single, solid Canvas &ldquo;stroke.&rdquo;</li>
+<li>Note: you <strong>must</strong> draw the curve using Canvas cubic Bézier segments (the <code>bezierCurveTo</code> function), with one segment for each of the segments of the cardinal spline. Also, in the event that you add curve types beyond Cardinal Cubic Splines (advanced points below), you should still support Cardinal (Catmull-Rom) splines.</li>
+</ul>
+</li>
+<li>
+<p>Create a train that goes around the track. Note that the slider goes from 0 to <em>n</em> (where <em>n</em> is the number of control points). The position of the train should be the value of this parameter on the track (so at zero, it is at the beginning of the first Bézier segment, at 1.5 it is on the second segment between the beginning and end, etc.). If you move the slider (or click the run button), the train should go around the track. You may choose how to draw the train, but the shape must have an obvious front and be rigid (not stretch as the train goes around the track). A rectangle and triangle would do. Of course, feel free to make something fancier. The train&rsquo;s position should always be on the track.</p>
+</li>
+<li>
+<p>Have the train point in the right direction as it goes around the track. Its orientation should be aligned with the tangent vector of the curve at the current position.</p>
+</li>
+<li>
+<p>Set things so that the default track (i.e., what you seen when the page first loads) is in a configuration where it will be obvious that we do not have an arc-length parameterization. Since the slider moves at a constant rate (approximately, since it depends on computer speed), the train will speed up and slow down as it goes around the track. (The slider moves at a constant rate in parameter value, so without an arc-length parameterization, it won&rsquo;t be a constant rate in position.) Note: if you do implement arc-length parameterization (below), you need to be able to switch it off to see the differences.</p>
+</li>
+</ol>
+<p>The train is on the page <a href="../../for_students/05-14-01.html" class="for_students">05-14-01.html</a>. The html is simple. The guts are in <a href="../../for_students/05-14-01.js" class="for_students">05-14-01.js</a>. You can do the basic assignment by simply improving the <code>draw</code> function.</p>
+<p>Note: we put the box on this page, but you probably want to look at it on its own as <a href="../../for_students/05-14-01.html" class="for_students">05-14-01.html</a> with the code in <a href="../../for_students/05-14-01.js" class="for_students">05-14-01.js</a>.</p>
+<iframe
+    title="05-14-01"
+    src="../../for_students/05-14-01.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<p>You must list the features you have implemented in the text file <a href="../../for_students/05-14-01.txt" class="for_students">05-14-01.txt</a>:</p>
+<iframe
+    title="05-14-01"
+    src="../../for_students/05-14-01.txt"
+    class="includebox"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<h3 id="additional-features">Additional Features</h3>
+<p>Add fancier features to earn advanced points. These are more difficult.</p>
+<ol>
+<li>
+<p>Create an arc-length parameterization of the curve. This will be essential for many of the next steps. Use the checkbox in the UI to switch between the normal parameterization and the arc-length one. When switched on, the train should still go around the track as the slider goes from 0 to N, it should just do so at constant apparent speed (assuming the frame rate is constant). Arc-length parameterization is useful for some of the other features. You should do this one first.</p>
+</li>
+<li>
+<p>Make &ldquo;rail ties&rdquo; (the beams that go across railroad tracks). These should be regularly spaced and be perpendicular to the track. If you don&rsquo;t have arc-length parameterization, then making regularly spaced rail ties will be difficult. On the other hand, if you have correctly working arc-length parameterization and you switch it off, the rails will look wrong - which is a great way to test. You should make rail ties by drawing small lines or boxes perpendicular to the track. You do not get credit for this feature by drawing a single curve with a fancy style (say, using thick dashed lines).</p>
+</li>
+<li>
+<p>Make &ldquo;parallel&rdquo; rails (two rails for the track). The rails should always be the same distance apart (the should be &ldquo;offset curves&rdquo; from the main curve). Note that you cannot just move the control points of the Bézier segments. To draw these, you probably need to break the curve into small pieces. Note: you need to have a switch in the UI that allows you to show the &ldquo;simple&rdquo; curve as well (see #1 above). You will not get points for this feature if you achieve the parallel rails by drawing a single curve with a fancy style (such as drawing a thick curve with a thin curve over it).</p>
+</li>
+<li>
+<p>Let the train have multiple cars. The cars need to stay a fixed distance apart (this requires arc-length parameterization). Note: the common way to implement the train is to put the center of the train (or each car) on the track; this means that the ends of the cars are off of the track and may not attach perfectly. Your cars must each have different appearances.</p>
+</li>
+<li>
+<p>Give the train / cars &ldquo;trucked&rdquo; wheels. The common way to implement the train is to attach the center of the train to the track and turn the body accordingly. Real trains have their wheels on the track, and the wheels turn relative to the car/train body (see the <a href="https://en.wikipedia.org/wiki/Bogie" target="_blank">Wikipedia article</a>, specifically <a href="https://en.wikipedia.org/wiki/Bogie#/media/File:Bogie_Vehicle_Schematic-en.svg" target="_blank">this diagram</a>). You could compute locations and orientations for each set of wheels, and then attach the train cars to the wheels. You need arc-length parameterization so that the train doesn&rsquo;t stretch. This is only recommended for train geeks.</p>
+</li>
+<li>
+<p>Add a slider that controls the tension of the cardinal spline.</p>
+</li>
+<li>
+<p>Add support for uniform cubic B-Splines . Note: if you implement this, you still need to have interpolating cardinal splines, so you must add a checkbox that switches between the cardinal splines and the B-Splines. While we didn&rsquo;t really discuss B-Splines in the workbook, you should be able to figure them out from the book. Hint: it&rsquo;s just a different basis matrix.</p>
+</li>
+<li>
+<p>Make the train emit smoke. This could have the form of simple gray circles that move away from the train and then dissipate (like the fireworks in an old workbook).</p>
+</li>
+<li>
+<p>Make things look nicer. Have a nicer looking train, a nicer looking track, and/or &ldquo;scenery&rdquo; (so the area around the train tracks is not a boring white space). We leave it to you to be creative. These advanced points are at the grader&rsquo;s discretion.</p>
+</li>
+<li>
+<p>If you make scenery, you can get additional points by making it &ldquo;adapt&rdquo; to the track. For example, if you put a building or tree near the tracks, it should be moved if you move the track (the train track shouldn&rsquo;t go through the scenery - the scenery should move out of the way).</p>
+</li>
+</ol>
+<h2 id="how-many-points-can-you-earn">How many points can you earn?</h2>
+<p>There are many advanced points possible, but we will only allow you to earn 20. Some of these can be a lot of work!</p>
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        <div class="page-rubric-container">
+    <details class="page__rubric">
+    <summary>Box 05-14-01 Rubric (49 points total)</summary>
+    <br/>
+    <div class="page-rubric-grid">
+            <div class="page-rubric-grid-header rubric-box-regular">Points (22):</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">4 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">Drawing the track as a single simple curve (cardinal spline) that interpolates the control points</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">5 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">Train goes around the track correctly (&#39;evenly in parameter space&#39; - continuous looping motion)</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">2 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">The interface still works (the track can be moved and the run slider works, even while the train is in motion)</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">2 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">Train has a front</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">3 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">Train points in the right direction as it goes around the track</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">3 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">Train direction and motion is correct even as points are added/removed</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">3 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">Default track configuration shows off arc length (train should speed up and slow down if arc length parameterization is turned off or not implemented)</div>
+            <div class="page-rubric-grid-header rubric-box-bonus">Advanced points (27):</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">3 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Arc Length parameterization (train goes at a relatively constant speed as it goes around the track, no matter what the control point spacing is). You must add a checkbox to turn this on and off. This one is hard, but it enables several of the other things, so it is actually worth a lot</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">2 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Rail Ties drawn perpendicular to track</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">2 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Rail Ties drawn with correct spacing (this is simple once you have arc-length</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">3 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Parallel rails</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">5 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Multiple cars (requires keeping the cars a fixed distance apart)</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">3 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Trucked wheels (requires keeping the pairs of wheels the correct distance apart and on the track, and having the train car positioned appropriately - this is only for people who are into trains and appreciate this detail)</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">1 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Slider to control tension</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">2 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Switchable B-Splines</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">2 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Smoke</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">1 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Scenery</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">1 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Scenery adapts to the track</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">1 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Artistic merit: nice looking train</div><div class="page-rubric-grid-box rubric-box-bonus">Box 05-14-01</div>
+                <div class="page-rubric-grid-points rubric-box-bonus">1 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-bonus">Artistic merit: nice looking track</div></div>
+    </details>
+    </div>
+<h2 id="some-hints">Some Hints</h2>
+<ol>
+<li>Remember the connection between Bézier cubics and Hermite cubics, and between cardinal splines and Hermite cubics. You may not need the parametric functions for Cardinals in order to convert them to Béziers. Once they are converted to Béziers, Canvas can draw them well.</li>
+<li>You do need to evaluate either the cardinal spline, or the Béziers that you converted them to, to figure out where the train is.</li>
+<li>You need to compute the derivatives of the spline to know what the tangent direction is. That will help you orient the train, as well as orient the rail ties (should you try to do them).</li>
+<li>Implement arc-length parameterization by using the table-based approach given in the previous workbook. We used 10 steps per cubic segment.</li>
+<li>Implement parallel rails by connecting points along the rail ties (but you may want to sample more finely). You will want to draw them as many small line segments. It turns out that displacing a Bezier curve in the normal direction does not lead to another Bezier curve - it&rsquo;s a more complex shape.</li>
+<li>Play with <a href="https://graphics.cs.wisc.edu/Courses/559-sp2021/Demos/train.html">my demo</a> ( discussed on the previous page). You can look at <a href="https://graphics.cs.wisc.edu/Courses/559-sp2020/pages/gallery/">last year&rsquo;s gallery</a> for inspiration (there are some <strong>very</strong> cool trains, you need to pick Workbook 6). You can see 3D trains in some of the Workbook 12 examples.</li>
+<li>The UI uses shift-click to add a point and ctrl-click to remove a point.</li>
+</ol>
+<h2 id="the-end">The end&hellip;</h2>
+<p>This was a big workbook.</p>
+<p>If you did the workbook, don&rsquo;t forget to push your work and complete the handin survey. <a href="https://canvas.wisc.edu/courses/343665/assignments/1844796">Workbook 05 Handin (due Mon, Mar 6)</a></p>
+
+            
+			
+		</div>
+	</article>
+</main>
+
+                </div>
+                <div class="sidebar">
+<h2 class="Side_Title">Workbook 5: Curves in 2D</h2>
+<p class="Side__Note">Pages:</p>
+<ul class="Side__List">
+    <li class="Side__Item Side__Unselected"><a href="../../">Index (CS559 Workbook 5: Curves in 2D)</a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/1/">1: Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/2/">2: Piecewise Parameteric Curves and Continuity </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/3/">3: Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/4/">4: Interpolation and Hermite Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/5/">5: Cardinal Cubics and Interpolation </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/6/">6: Bézier Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/7/">7: DeCastlejau Constructions </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/8/">8: Bézier Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/9/">9: Béziers in APIs </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/10/">10: Arc-Length Parameterizations </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/11/">11: Drawing Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/12/">12: Curve review </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/13/">13: The Train: Intro </a></li>
+        <li class="Side__Item Side__Selected"> 14: The Train: Assignment </li>
+</ul>
+</div>
+</div>
+    </body>
+</html>

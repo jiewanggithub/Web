@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+    
+<!-- CS559 Workbook Pages - page content &copy; 2021, Michael Gleicher -->
+<!-- This page is part of a Workbook developed for the 
+    CS559 Computer Graphics Class at the University of Wisconsin
+    https://graphics.cs.wisc.edu/Courses/559-sp2021/ -->
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../css/workbook.css">
+        <script src="../../js/resizeIFrames.js"></script>    
+    
+    
+    <script type="text">
+        (function() {
+            var i, text, code, codes = document.getElementsByTagName('code');
+            for (i = 0; i &lt; codes.length;) {
+                code = codes[i];
+                if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+                text = code.textContent;
+                if (/^\$[^$]/.test(text) && /[^$]\$$/.test(text)) {
+                    text = text.replace(/^\$/, '\\(').replace(/\$$/, '\\)');
+                    code.textContent = text;
+                }
+                if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+                    /^\$(.|\s)+\$$/.test(text) ||
+                    /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+                    code.outerHTML = code.innerHTML;  // remove <code></code>
+                    continue;
+                }
+                }
+                i++;
+            }
+            })();
+    </script>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [['$$','$$'], ['\\[','\\]']],
+            processEscapes: true,
+            processEnvironments: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            TeX: { equationNumbers: { autoNumber: "AMS" },
+                    extensions: ["AMSmath.js", "AMSsymbols.js"] }
+            }
+        });
+    </script>
+
+    </head>
+    <body>
+        <div class="container container--outer"><div class="maincolumn">
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header"><h1 class="post__title">Page 5: Cardinal Cubics and Interpolation</h1>
+		</header>
+        
+        
+        
+		<div class="content post__content clearfix"><p>There are (at least) two problems with using Hermite segments to create a $C(1)$ curve:</p>
+<ol>
+<li>We need to determine what the derivatives are at the beginning and end of every segment.</li>
+<li>Thinking in terms of derivatives can be hard - we&rsquo;re combining positions (that are good to think about) with vectors/directions (which are less clear, especially when we need to consider what their lengths mean).</li>
+</ol>
+<p>One simple approach: we compute reasonable values for the derivatives based on the positions of the points. This approach is called a <strong>cardinal spline</strong> in graphics. It is a spline, because we are making a curve by a set of polynomial pieces, and I cannot tell you why it is called a cardinal (I cannot find anything on the history of the term).</p>
+<p>To interpolate a chain of points $\mathbf{p_0}$, $\mathbf{p_1}$, $\mathbf{p_2}$, etc., we will create a cubic segment between each neighboring pair. To specify the cubic, we will use the Hermite form: the cubic will interpolate its endpoints, and we will compute the derivatives based on the positions of the points. Importantly, we will use the neighboring points in this process so that we compute values that make the overall curve $C(1)$.</p>
+<h2 id="cardinal-form">Cardinal Form</h2>
+<p>Consider the points $\mathbf{p_0}$, $\mathbf{p_1}$, $\mathbf{p_2}$, and $\mathbf{p_3}$. To start, we focus on the segment between $\mathbf{p_1}$ and $\mathbf{p_2}$ - it will be a cubic curve. We know the beginning and end, but we need to compute the derivatives.</p>
+<p>We will compute the derivative at a point (say $\mathbf{p_i}$) by taking the vector between the previous point ($\mathbf{p_{i-1}}$) and the next point ($\mathbf{p_{i+1}}$) and scaling it by some value $s$. To start with, we will simply make $s=1/2$ because this is the common value.</p>
+<p>So, in the example, $\mathbf{p&rsquo;_1} = \frac{1}{2} (\mathbf{p_2} - \mathbf{p_0})$. In a picture&hellip;</p>
+
+    
+    <figure class="">
+        <a href="../../drawings/cardinal-1.png">
+            <img src="../../drawings/cardinal-1_hue12e8b12354f7088629d90523c0e6be8_7224_300x300_fit_box_3.png" alt="drawings/cardinal-1.png" />
+        </a>
+    </figure>
+
+<p>We do the same thing for the ending point $\mathbf{p_2}$.</p>
+
+    
+    <figure class="">
+        <a href="../../drawings/cardinal-2.png">
+            <img src="../../drawings/cardinal-2_hud0413091a5330c7eedc697b882387df4_11688_300x300_fit_box_3.png" alt="drawings/cardinal-2.png" />
+        </a>
+    </figure>
+
+<p>Notice that the curve segment wiggles. The derivative at $\mathbf{p_2}$ points to the right, so the curve must enter $\mathbf{p_2}$ from the left.</p>
+<p>One counter-intuitive thing is that for the list of 4 points, $\mathbf{p_0}$, $\mathbf{p_1}$, $\mathbf{p_2}$, and $\mathbf{p_3}$, the curve actually connects $\mathbf{p_1}$ and $\mathbf{p_2}$. The other points $\mathbf{p_0}$ and $\mathbf{p_3}$ are only used to compute the derivatives.</p>
+<p>If we add another point $\mathbf{p_4}$, we can do the same thing for points $\mathbf{p_1}$, $\mathbf{p_2}$, $\mathbf{p_3}$, and $\mathbf{p_4}$ to draw the &ldquo;next&rdquo; curve segment. Notice that the derivative computation for $\mathbf{p_2}$ is the same whether the point is the beginning or the end of the segment.</p>
+
+    
+    <figure class="">
+        <a href="../../drawings/cardinal-3.png">
+            <img src="../../drawings/cardinal-3_hu434e83f4aaaea78d4760c70d8c435779_19485_300x300_fit_box_3.png" alt="drawings/cardinal-3.png" />
+        </a>
+    </figure>
+
+<p>Here, we have drawn the 2 segments of the curve - they meet with C(1) continuity. I drew the segments in different colors, but we can consider them together as a combined spline that interpolates the points.</p>
+<p>You might wonder what to do about the beginning and the end. How do we draw a curve that includes (in this example) $\mathbf{p_0}.$ Here are a few options:</p>
+<ol>
+<li>Don&rsquo;t draw those ending segments. The spline doesn&rsquo;t interpolate its endpoints.</li>
+<li>Do something special at the endpoints. Either treat the derivative as 0, or use the endpoint twice (so the derivative $\mathbf{p&rsquo;_0}$ would be $\mathbf{p_1}-\mathbf{p_0}$ or $s(\mathbf{p_1}-\mathbf{p_0})$).</li>
+<li>Use it for loops where the end connects to the beginning - so there is always a next point. We&rsquo;ll do this next week.</li>
+</ol>
+<p>Here is an example of #2. I chose to repeat the endpoint.</p>
+
+    
+    <figure class="">
+        <a href="../../drawings/cardinal-4.png">
+            <img src="../../drawings/cardinal-4_hu8f4c5171c18952c4959f0ec67594f1cb_21108_300x300_fit_box_3.png" alt="drawings/cardinal-4.png" />
+        </a>
+    </figure>
+
+<p>I should also note: the actual curves I am drawing have a scaling on the derivatives,</p>
+<h2 id="cardinal-splines">Cardinal Splines</h2>
+<p>The trick to cardinal splines is that we compute the derivatives at any point based on the previous and next point.</p>
+<p><code>$$ \mathbf{p'_i} = s\bigg(\mathbf{p_{i+1}} - \mathbf{p_{i-1}}\bigg) $$</code></p>
+<p>The parameter $s$ determines how big the derivatives are. For some historical reasons, it is often written in terms of another parameter $t$ (the <strong>tension</strong>) where $s=\frac{1-t}{2}$.</p>
+<p>For the special case of $t=0$ or $s=1/2$, we call this a &ldquo;Catmull-Rom&rdquo; spline. This is named after Edwin Catmull (and Raphael Rom). Ed Catmull was the founder of Pixar and invented an amazing number of things in computer graphics (many of which we will learn over the course of the semester).</p>
+<p>Cardinal splines are nice because we can use them to interpolate a set of points with $C(1)$ continuity. They are <strong>local</strong>, as any place on the curve only depends on 4 points. So, if you have a big long chain, changing something at the beginning doesn&rsquo;t cause a problem at the end.</p>
+<p>You will see more cardinal splines in the future. They are a common way to do interpolation in computer graphics.</p>
+<h2 id="beyond-interpolating-curves">Beyond Interpolating Curves</h2>
+<p>A key problem with Catmull-Rom, or more generally cardinal splines, or even more generally any interpolation scheme, is that while interpolation tells us where the curve goes at specific points, it provides less control over what happens between those points. For example, notice how in the example image above, the curve dips below the line of points ($\mathbf{p_0}$ $\mathbf{p_1}$). Here is another example:</p>
+
+    
+    <figure class="">
+        <a href="../../drawings/cardinal-outside.png">
+            <img src="../../drawings/cardinal-outside_hu809c4a183efca30cc96c3a78e4fce2b5_17100_500x500_fit_box_3.png" alt="drawings/cardinal-outside.png" />
+        </a>
+    </figure>
+
+<p>Notice that to pass through point 3, the curve has to dip below the line.</p>
+<p>To get better control, we often prefer to use forms of curves that do not interpolate all of their control points. On the <a href="../../docs/6/" class="Next__Page">next page</a> we will learn about a very popular form of non-interpolating curves.</p>
+<p><a href="../../docs/6/" class="Next__Page">Next: Bézier Curves </a></p>
+
+            
+
+<div>
+        <i>There are no points associated with this page.</i>
+    </div>
+			
+			
+		</div>
+	</article>
+</main>
+
+                </div>
+                <div class="sidebar">
+<h2 class="Side_Title">Workbook 5: Curves in 2D</h2>
+<p class="Side__Note">Pages:</p>
+<ul class="Side__List">
+    <li class="Side__Item Side__Unselected"><a href="../../">Index (CS559 Workbook 5: Curves in 2D)</a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/1/">1: Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/2/">2: Piecewise Parameteric Curves and Continuity </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/3/">3: Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/4/">4: Interpolation and Hermite Cubics </a></li>
+        <li class="Side__Item Side__Selected"> 5: Cardinal Cubics and Interpolation </li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/6/">6: Bézier Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/7/">7: DeCastlejau Constructions </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/8/">8: Bézier Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/9/">9: Béziers in APIs </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/10/">10: Arc-Length Parameterizations </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/11/">11: Drawing Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/12/">12: Curve review </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/13/">13: The Train: Intro </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/14/">14: The Train: Assignment </a></li>
+</ul>
+</div>
+</div>
+    </body>
+</html>

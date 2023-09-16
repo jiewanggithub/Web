@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+    
+<!-- CS559 Workbook Pages - page content &copy; 2021, Michael Gleicher -->
+<!-- This page is part of a Workbook developed for the 
+    CS559 Computer Graphics Class at the University of Wisconsin
+    https://graphics.cs.wisc.edu/Courses/559-sp2021/ -->
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../css/workbook.css">
+        <script src="../../js/resizeIFrames.js"></script>    
+    
+    
+    <script type="text">
+        (function() {
+            var i, text, code, codes = document.getElementsByTagName('code');
+            for (i = 0; i &lt; codes.length;) {
+                code = codes[i];
+                if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+                text = code.textContent;
+                if (/^\$[^$]/.test(text) && /[^$]\$$/.test(text)) {
+                    text = text.replace(/^\$/, '\\(').replace(/\$$/, '\\)');
+                    code.textContent = text;
+                }
+                if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+                    /^\$(.|\s)+\$$/.test(text) ||
+                    /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+                    code.outerHTML = code.innerHTML;  // remove <code></code>
+                    continue;
+                }
+                }
+                i++;
+            }
+            })();
+    </script>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [['$$','$$'], ['\\[','\\]']],
+            processEscapes: true,
+            processEnvironments: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            TeX: { equationNumbers: { autoNumber: "AMS" },
+                    extensions: ["AMSmath.js", "AMSsymbols.js"] }
+            }
+        });
+    </script>
+
+    </head>
+    <body>
+        <div class="container container--outer"><div class="maincolumn">
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header"><h1 class="post__title">Page 2: Piecewise Parameteric Curves and Continuity</h1>
+		</header>
+        
+        
+        
+		<div class="content post__content clearfix"><p>The way that we&rsquo;ll make complicated shapes is by piecing together simple pieces. We&rsquo;ve already been doing this: we have been making pictures out of primitives. If we want something complicated, we make it from a bunch of lines, arcs, polygons, etc.</p>
+<p>A specific example we have already been using are line segments. Line segments are a simple primitive. If we want to make a more complicated shape, we piece together a bunch of them. We might call the combined thing a &ldquo;bigger primitive&rdquo; (e.g., a polyline or whatever name you like for a list of line segments).</p>
+<p>When we build things out of parts, we need to think about two main issues: (1) what parts do we make things out of, and (2) how do we make sure that those parts fit together nicely.</p>
+<p>To extend the line segment example: we know the pieces very well (a line segment is well defined mathematically, and we know how to specify it by giving its endpoints or other sets of numbers). We know how to fit pieces together: we make the end of one line as the beginning of the next, and they connect without a gap. With line segments, at this connection point there will be a sharp &ldquo;corner&rdquo; (unless the line segments are going in the same direction). The shape won&rsquo;t be &ldquo;smooth&rdquo;. For talking about line segments, you can probably imagine what I mean by &ldquo;corner&rdquo; and &ldquo;smooth&rdquo; - but for graphics, we&rsquo;ll need to define the concept of smoothness more formally, which is what this page is about.</p>
+<h2 id="two-line-segments">Two Line Segments</h2>
+<p>However, before defining smoothness (or continuity), we can learn a few things from the line segments.</p>
+<p><strong>First,</strong> notice the problem with &ldquo;lack of smoothness&rdquo; only happens the points where the lines come together. The line segment pieces themselves are smooth. The &ldquo;continuity&rdquo; question only happens at the specific place where the pieces meet.</p>
+<p><strong>Second,</strong> there are many different ways of writing the same line segment in parametric form. A simple one is:</p>
+<p><code>$$\mathbf{f}(u) = \bigg[ (1-u) p_{1x} + u p_{2x}, (1-u) p_{1y} + u p_{2y}\bigg] = (1-u) \mathbf{p_1} + u \mathbf{p_2}$$</code></p>
+<p>This describes a line going from point <code>$\mathbf{p_1}$</code> to <code>$\mathbf{p_2}$</code>. I wrote it in non-vector notation first, and then in vector notation. Remember that u is a scalar, and in this case it does go from 0 to 1.</p>
+<p>Here is another way to write the equation of the same line segment, but in terms of different parameters:</p>
+<p><code>$$\mathbf{f}(u) = \bigg[ a_{0x} + u a_{1x}, a_{0y} + u a_{1y}\bigg] = \mathbf{a_0} + u \mathbf{a_1}$$</code></p>
+<p>Here, I chose to specify the line with 2 vectors: <code>$\mathbf{a_0}$</code> and <code>$\mathbf{a_1}$</code>. The equation is much simpler, but it is less easy for me to specify the line. For example, if I knew where I wanted the line to end (so it connected to the next line), I have to compute the right values of <code>$\mathbf{a_0}$</code> and <code>$\mathbf{a_1}$</code>. In this case, the computation is simple, but it isn&rsquo;t the same as just making the end of one line be the beginning of the next.</p>
+<p><strong>Third:</strong> each line segment gets its own range of <code>$u$</code>. If we wanted to have one line segment &ldquo;continue&rdquo; into another, we would need to introduce a new parameter. For example, suppose we have two line segments:
+<code>$$\mathbf{f_1}(u) = (1-u) \mathbf{p_1} + u \mathbf{p_2}$$</code>
+<code>$$\mathbf{f_2}(u) = (1-u) \mathbf{p_2} + u \mathbf{p_3}$$</code></p>
+<p>Each of these line segments has the point $\mathbf{p_2}$ as one of its endpoints, but both of them have inputs in the range 0-1. To combine these segments into a single piecewise curve, we need to map a different part of our input range to each line segment. One approach would be to make the input range be twice as long:
+<code>$$\mathbf{f}(t) = \mathrm{if}\ (t&lt;1) \ \mathrm{then}\ \mathbf{f_1}(t) \ \mathrm{else}\ \mathbf{f_2}(t-1)$$</code>
+which makes a 2-piece polyline over the range 0-2. Notice how this maps the second half of the $t$ range (1-2) to the range of the second line segment by subtracting 1 from $t$.</p>
+<p>If we wanted the polyline to have the input range 0-1, we could construct a slightly different equation:
+<code>$$\mathbf{f}(u) = \mathrm{if}\ (u&lt;1/2) \ \mathrm{then}\ \mathbf{f_1}(u*2) \ \mathrm{else}\ \mathbf{f_2}(2u-1)$$</code></p>
+<p>Here we draw the curve $\mathbf{f_1}$ from $u$=0 to 0.5 and $\mathbf{f_2}$ from $u$=0.5 to 1. In each case, we scale and shift $u$ so that the input to each line segment varies over the range 0-1.</p>
+<h2 id="continuity-of-parametric-curves">Continuity of Parametric Curves</h2>
+<p>The concept of continuity is explained in section 15.2.1 of <a href="https://canvas.wisc.edu/files/30140455/download?download_frd=1">FCG4_Ch15.pdf (0.5mb)</a>.</p>
+<p>On this page, we&rsquo;ll just emphasize some of the more important concepts.</p>
+<p>By the way, the code snippets are taken from the previous page (or in the style of functions used on the previous page). The parametric functions are defined on the range (0,1). Given a parameter value, they return the position (x,y) and the tangent vector (<code>$\partial x/\partial u, \partial y/\partial u$</code>).</p>
+<h2 id="continuity">Continuity</h2>
+<p>On the previous page, we saw that when there was an <code>if</code> statement in our parametric function, there was a chance for an abrupt change (in the position or the derivative). We formalize this with a notion of continuity.</p>
+<p>We say that a curve has <strong>continuity</strong> at a particular site (parameter value) if the value is the same whether we approach the site from above or below. For example, in the two-line-segments example from the previous page:</p>
+<div class="highlight"><div style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#00a8c8">function</span> <span style="color:#75af00">disconnect</span><span style="color:#111">(</span><span style="color:#75af00">u</span><span style="color:#111">)</span> <span style="color:#111">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#00a8c8">if</span> <span style="color:#111">(</span><span style="color:#75af00">u</span> <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0.5</span><span style="color:#111">)</span> <span style="color:#00a8c8">return</span> <span style="color:#111">[</span><span style="color:#ae81ff">0</span><span style="color:#111">,</span> <span style="color:#ae81ff">200</span> <span style="color:#f92672">*</span> <span style="color:#75af00">u</span><span style="color:#111">,</span> <span style="color:#ae81ff">0</span><span style="color:#111">,</span> <span style="color:#ae81ff">200</span><span style="color:#111">];</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#00a8c8">else</span> <span style="color:#00a8c8">return</span> <span style="color:#111">[</span><span style="color:#ae81ff">20</span><span style="color:#111">,</span> <span style="color:#ae81ff">100</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">200</span> <span style="color:#f92672">*</span> <span style="color:#111">(</span><span style="color:#75af00">u</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">0.5</span><span style="color:#111">),</span> <span style="color:#ae81ff">0</span><span style="color:#111">,</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">200</span><span style="color:#111">];</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Consider what happens when $u$ is around 0.5.</p>
+<ul>
+<li>When we approach $u$=0.5 from below ($u$=0.4, 0.49, 0.499, &hellip;), our curve approaches the point (0, 100).</li>
+<li>When we approach $u$=0.5 from above ($u$=0.6, 0.51, 0.501, &hellip;), our curve approaches the point (20,100).</li>
+</ul>
+<p>Since these values are different, we say this curve has a <em>discontinuity</em> in value at 0.5. Since we typically talk about discontinuities in terms of derivatives, we say that the curve has a discontinuity in its zeroth derivative.</p>
+<p>For the V shape, something similar happens with the first derivative.</p>
+<div class="highlight"><div style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#00a8c8">function</span> <span style="color:#75af00">twoLines</span><span style="color:#111">(</span><span style="color:#75af00">u</span><span style="color:#111">)</span> <span style="color:#111">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#00a8c8">if</span> <span style="color:#111">(</span><span style="color:#75af00">u</span> <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0.5</span><span style="color:#111">)</span> <span style="color:#00a8c8">return</span> <span style="color:#111">[</span><span style="color:#ae81ff">100</span> <span style="color:#f92672">*</span> <span style="color:#75af00">u</span><span style="color:#111">,</span> <span style="color:#ae81ff">200</span> <span style="color:#f92672">*</span> <span style="color:#75af00">u</span><span style="color:#111">,</span> <span style="color:#ae81ff">100</span><span style="color:#111">,</span> <span style="color:#ae81ff">200</span><span style="color:#111">];</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#00a8c8">else</span> <span style="color:#00a8c8">return</span> <span style="color:#111">[</span><span style="color:#ae81ff">100</span> <span style="color:#f92672">*</span> <span style="color:#75af00">u</span><span style="color:#111">,</span> <span style="color:#ae81ff">100</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">200</span> <span style="color:#f92672">*</span> <span style="color:#111">(</span><span style="color:#75af00">u</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">0.5</span><span style="color:#111">),</span> <span style="color:#ae81ff">100</span><span style="color:#111">,</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">200</span><span style="color:#111">];</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>For the values (zeroth derivative), there is no discontinuity (the value at $u$=0.5 is (50,100) whether we approach 0.5 from above or below). But there is a discontinuity in the first derivative (tangent). Approaching 0.5 from below, the derivative (with respect to $u$) is (100,200), while approaching it from above it is (100,-200). We say this curve has a discontinuity in its first derivative.</p>
+<p>We say a curve is <em>continuous</em> (or has continuity), if it has no discontinuities across its parameter range. If a curve has no discontinuities of its zeroth derivatives (its values) we call it $C(0)$. If a curve has no discontinuities in its zeroth or first derivatives, we call it $C(1)$. More generally, if a curve has no discontinuities in any of its derivatives up to $n$, we call it $C(n)$.</p>
+<p>Note that if we say a curve is $C(1)$, that implies that it is also $C(0)$. It is possible to contrive a curve that has first derivative continuity but not value continuity, such as:</p>
+<div class="highlight"><div style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#00a8c8">function</span> <span style="color:#75af00">broken</span><span style="color:#111">(</span><span style="color:#75af00">u</span><span style="color:#111">)</span> <span style="color:#111">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#00a8c8">if</span> <span style="color:#111">(</span><span style="color:#75af00">u</span> <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0.5</span><span style="color:#111">)</span> <span style="color:#00a8c8">return</span> <span style="color:#111">[</span><span style="color:#75af00">u</span><span style="color:#111">,</span> <span style="color:#ae81ff">0</span><span style="color:#111">,</span> <span style="color:#ae81ff">1</span><span style="color:#111">,</span> <span style="color:#ae81ff">0</span><span style="color:#111">];</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#00a8c8">else</span> <span style="color:#00a8c8">return</span> <span style="color:#111">[</span><span style="color:#75af00">u</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span><span style="color:#111">,</span> <span style="color:#ae81ff">0</span><span style="color:#111">,</span> <span style="color:#ae81ff">1</span><span style="color:#111">,</span> <span style="color:#ae81ff">0</span><span style="color:#111">];</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>but such curves aren&rsquo;t important for graphics. We do not call this $C(1)$, because $C(1)$ is defined so as to imply $C(0)$.</p>
+<p>Note that the V shape is $C(0)$ but not $C(1)$. Here&rsquo;s an example of a shape that is $C(1)$ but not $C(2)$:</p>
+<div class="highlight"><div style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#75715e">// this code has the derivatives removed to be easier to read
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#00a8c8">function</span> <span style="color:#75af00">twoQuarterCircles</span><span style="color:#111">(</span><span style="color:#75af00">u</span><span style="color:#111">)</span> <span style="color:#111">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#00a8c8">let</span> <span style="color:#75af00">pu</span> <span style="color:#f92672">=</span> <span style="color:#111">Math</span><span style="color:#111">.</span><span style="color:#75af00">PI</span> <span style="color:#f92672">*</span> <span style="color:#75af00">u</span><span style="color:#111">;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#00a8c8">if</span> <span style="color:#111">(</span><span style="color:#75af00">u</span> <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0.5</span><span style="color:#111">)</span> <span style="color:#00a8c8">return</span> <span style="color:#111">[</span><span style="color:#ae81ff">50</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">50</span> <span style="color:#f92672">*</span> <span style="color:#111">Math</span><span style="color:#111">.</span><span style="color:#75af00">cos</span><span style="color:#111">(</span><span style="color:#75af00">pu</span><span style="color:#111">),</span> <span style="color:#ae81ff">50</span> <span style="color:#f92672">*</span> <span style="color:#111">Math</span><span style="color:#111">.</span><span style="color:#75af00">sin</span><span style="color:#111">(</span><span style="color:#75af00">pu</span><span style="color:#111">)];</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#00a8c8">else</span> <span style="color:#00a8c8">return</span> <span style="color:#111">[</span><span style="color:#ae81ff">50</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">50</span> <span style="color:#f92672">*</span> <span style="color:#111">Math</span><span style="color:#111">.</span><span style="color:#75af00">cos</span><span style="color:#111">(</span><span style="color:#75af00">pu</span><span style="color:#111">),</span> <span style="color:#ae81ff">100</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">50</span> <span style="color:#f92672">*</span> <span style="color:#111">Math</span><span style="color:#111">.</span><span style="color:#75af00">sin</span><span style="color:#111">(</span><span style="color:#75af00">pu</span><span style="color:#111">)];</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><iframe
+    title="05-02-01"
+    src="../../for_students/05-02-01.html"
+    class="includebox includebox-standard"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<p>Here (<a href="../../for_students/05-02-01.html" class="for_students">05-02-01.html</a>), two circular arcs connect at u=0.5. At the connection point, whether you are approaching from below or above, the tangent vector is horizontal and to the left. Watch the animation on the previous page.</p>
+<p>This connection of two arcs is $C(1)$, but it is not $C(2)$ - the second derivatives are different between the first (top) part and the second (bottom) part. In the former, at 0.5 the derivative is turning upwards, whereas in the latter it is turning downwards. The 2nd derivative discontinuity is this rapid change: elsewhere (as we go around the circle) the second derivative does change, but it changes smoothly.</p>
+<p>Also, notice that when we talk about continuity, we have only needed to consider the points where our piecewise curves switch between different pieces. The functions we have chosen are generally continuous in between these exceptional points. When we assemble curves from smooth pieces (such as arcs and polynomials), the potential for discontinuities is at the connections.</p>
+<h2 id="geometric-continuity">Geometric Continuity</h2>
+<p>Suppose we aren&rsquo;t animating the pen, only looking at the resulting drawing. If we have a curve that changes its derivative, but we can&rsquo;t see that change, we might not care.</p>
+<p>For example, consider the curve:</p>
+<div class="highlight"><div style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#00a8c8">function</span> <span style="color:#75af00">speedUp</span><span style="color:#111">(</span><span style="color:#75af00">u</span><span style="color:#111">)</span> <span style="color:#111">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#00a8c8">if</span> <span style="color:#111">(</span><span style="color:#75af00">u</span> <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0.5</span><span style="color:#111">)</span> <span style="color:#00a8c8">return</span> <span style="color:#111">[</span><span style="color:#75af00">u</span><span style="color:#111">,</span> <span style="color:#ae81ff">0</span><span style="color:#111">,</span> <span style="color:#ae81ff">1</span><span style="color:#111">,</span> <span style="color:#ae81ff">0</span><span style="color:#111">];</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#00a8c8">else</span> <span style="color:#00a8c8">return</span> <span style="color:#111">[</span><span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> <span style="color:#75af00">u</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">0.5</span><span style="color:#111">,</span> <span style="color:#ae81ff">0</span><span style="color:#111">,</span> <span style="color:#ae81ff">2</span><span style="color:#111">,</span> <span style="color:#ae81ff">0</span><span style="color:#111">];</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>The curve is a straight line, but the pen speeds up halfway (in parameter space). This curve is not $C(1)$, since the derivative changes sharply at $u$=0.5. However, since the direction of the tangent does not change (only its speed), this might be &ldquo;continuous enough&rdquo;. We call this easier kind of continuity (where the direction remains the same, even if the magnitude might change) <strong>geometric continuity</strong> (as opposed to the derivative continuity we had been discussing). We denote geometric continuity as $G(n)$ (for $n$th derivatives). So $G(1)$ means that the curves&rsquo; first derivatives have no discontinuities in their direction. (Note that $C(n)$ continuity implies $G(n)$.)</p>
+<p>More formally, geometric continuity is defined in terms of arc-length parameterizations. However, since we haven&rsquo;t introduced those yet, we&rsquo;ll stick to the intuition based version. The book explains the details.</p>
+<h2 id="summary-continuity">Summary: Continuity</h2>
+<p>Continuity is the key to putting pieces together. On <a href="../../docs/3/" class="Next__Page">Page 3: Cubics</a> we will look at cubic polynomial segments, which are a common piece to put together.</p>
+
+            
+
+<div>
+        <i>There are no points associated with this page.</i>
+    </div>
+			
+			
+		</div>
+	</article>
+</main>
+
+                </div>
+                <div class="sidebar">
+<h2 class="Side_Title">Workbook 5: Curves in 2D</h2>
+<p class="Side__Note">Pages:</p>
+<ul class="Side__List">
+    <li class="Side__Item Side__Unselected"><a href="../../">Index (CS559 Workbook 5: Curves in 2D)</a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/1/">1: Curves </a></li>
+        <li class="Side__Item Side__Selected"> 2: Piecewise Parameteric Curves and Continuity </li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/3/">3: Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/4/">4: Interpolation and Hermite Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/5/">5: Cardinal Cubics and Interpolation </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/6/">6: Bézier Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/7/">7: DeCastlejau Constructions </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/8/">8: Bézier Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/9/">9: Béziers in APIs </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/10/">10: Arc-Length Parameterizations </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/11/">11: Drawing Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/12/">12: Curve review </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/13/">13: The Train: Intro </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/14/">14: The Train: Assignment </a></li>
+</ul>
+</div>
+</div>
+    </body>
+</html>

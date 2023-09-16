@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+    
+<!-- CS559 Workbook Pages - page content &copy; 2021, Michael Gleicher -->
+<!-- This page is part of a Workbook developed for the 
+    CS559 Computer Graphics Class at the University of Wisconsin
+    https://graphics.cs.wisc.edu/Courses/559-sp2021/ -->
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../css/workbook.css">
+        <script src="../../js/resizeIFrames.js"></script>    
+    
+    
+    <script type="text">
+        (function() {
+            var i, text, code, codes = document.getElementsByTagName('code');
+            for (i = 0; i &lt; codes.length;) {
+                code = codes[i];
+                if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+                text = code.textContent;
+                if (/^\$[^$]/.test(text) && /[^$]\$$/.test(text)) {
+                    text = text.replace(/^\$/, '\\(').replace(/\$$/, '\\)');
+                    code.textContent = text;
+                }
+                if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+                    /^\$(.|\s)+\$$/.test(text) ||
+                    /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+                    code.outerHTML = code.innerHTML;  // remove <code></code>
+                    continue;
+                }
+                }
+                i++;
+            }
+            })();
+    </script>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            inlineMath: [['$','$'], ['\\(','\\)']],
+            displayMath: [['$$','$$'], ['\\[','\\]']],
+            processEscapes: true,
+            processEnvironments: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            TeX: { equationNumbers: { autoNumber: "AMS" },
+                    extensions: ["AMSmath.js", "AMSsymbols.js"] }
+            }
+        });
+    </script>
+
+    </head>
+    <body>
+        <div class="container container--outer"><div class="maincolumn">
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header"><h1 class="post__title">Page 4: Interpolation and Hermite Cubics</h1>
+		</header>
+        
+        
+        
+		<div class="content post__content clearfix"><p>We say a curve <strong>interpolates</strong> a value if it takes that value given a certain value of its parameter. We call that value of the parameter the <strong>site.</strong> So, when we specify that a curve $\mathbf{f}(u)$ has value $\mathbf{p_0}$ at its beginning (i.e., $\mathbf{f}(0)=\mathbf{p_0}$), we would say &ldquo;the curve interpolates $\mathbf{p_0}$ at site 0.&rdquo;</p>
+<p>When we specify interpolation, we might not specify the site - we might just specify that the curve has the value at some point in its range. Also, interpolation might specify the value of the derivative, not just the value of the value.</p>
+<p>A common form of interpolation is to give a list of points that the curve should go through. We&rsquo;ll discuss that in lecture. Here, we&rsquo;ll focus on a specific type of interpolation. We often want to specify the beginning and end so we can make connections. Sometimes we also want to specify the <em>derivatives</em> at the beginning and end so that we can have continuity.</p>
+<h2 id="hermite-interpolation-forms-for-cubics">Hermite interpolation forms for Cubics</h2>
+<p>With a cubic, we have 4 coefficients we can control, so it should make sense that we can choose 4 things to specify and use those to determine the 4 coefficients. If we specify less than 4 things, there will be choices (it is under-determined). If we specify more than 4 things, we may not be able to meet them all.</p>
+<p>With cubics, we may want to specify the positions and tangents (first derivatives) at the beginning and end of the segment. This gives us 4 values to specify (so it&rsquo;s the right number). It is convenient since it allows sufficient control to get $C(1)$ continuity. We&rsquo;ll talk about other things to specify below. But this form - value and 1st derivative at beginning and end - is sufficiently important that we will explore it carefully.</p>
+<p>The idea of specifying a curve by its values (and derivatives) at its beginning and end is sometimes called <strong>Hermite</strong> interpolation. Charles Hermite was a French mathematician (I believe it is pronounced as &ldquo;her meet&rdquo; because the name is French so &ldquo;i&rdquo; sounds like &ldquo;ee&rdquo;, or, in French the &ldquo;H&rdquo; is not voiced, so maybe &ldquo;err meet&rdquo; to make my French teacher happy) who studied polynomials and interpolation. He has many things named after him.</p>
+<p>The Hermite cubics we use in graphics are part of a general set of interpolating forms: we specify values that the curves have. With Hermite forms, we specify the values and derivatives for the curve at the beginning and end. We can have Hermite polynomials for different degrees. For example, a first degree Hermite polynomial is a line segment, where we specify the values at the ends. A quintic Hermite (5th degree) would specify the value and the first two derivatives at each end of the curve. In class, we will only consider cubics (and lines, but we&rsquo;ve done them already).</p>
+<p>For Hermite Cubics, we specify the value of the curve at the beginning, the value of the curve at the end, the first derivative (tangent vector) of the curve at the beginning, and the tangent vector (first derivative) of the curve at the end.</p>
+
+    
+    <figure class="">
+        <a href="../../images/hermite.png">
+            <img src="../../images/hermite_hu5c9428eb9cf5d978c0dc36e5a612efd5_4863_300x300_fit_box_3.png" alt="diagram of Hermite Coefficients" />
+        </a>
+    </figure>
+
+<p>Here we denote the first point as $\mathbf{p_0}$, the second point as $\mathbf{p_1}$, and their associated derivatives as $\mathbf{p&rsquo;_0}$ and $\mathbf{p&rsquo;_1}$. These are all specified values. We specify the derivative of the curve at the beginning and end.</p>
+<p>Even though the derivatives are vectors, we still refer to them as <strong>control points.</strong> Since it is a cubic, it has 4 control points.</p>
+<p>We can derive formulas for the coefficients (the <code>$ \mathbf a_0, \mathbf a_1, \mathbf a_2, \mathbf a_3 $</code>) from the Hermite control points. This is done in the book - but we won&rsquo;t ask you to do these derivations in class.</p>
+<p>Here are the equations:
+<code>$$\begin{aligned} f(u) = \mathbf p_0 &amp; \ u^0 + \\ \mathbf p_0' &amp; \ u^1 + \\ (-3 \mathbf p_0 -2 \mathbf p_0' + 3 \mathbf p_1 - \mathbf p_1') &amp; \ u^2 + \\ (2 \mathbf p_0 + \mathbf p_0' -2 \mathbf p_1 + \mathbf p_1') &amp; \ u^3 \\ \end{aligned}$$</code>
+Writing it out like this, it should be clear that <code>$\mathbf a_0 = \mathbf p_0$</code>, <code>$\mathbf a_1 = \mathbf p_0'$</code>, etc.</p>
+<p>The book uses matrix notation for writing out these equations. The connection to matrix notation becomes clearer if we format the equation a little differently:
+<code>$$\begin{aligned} f(u) = ( 1\ &amp;\mathbf p_0 + 0\ \mathbf p_0' + 0\ \mathbf p_1 + 0\ \mathbf p_1' ) \ u^0 + \\ ( 0\ &amp;\mathbf p_0 + 1\ \mathbf p_0' + 0\ \mathbf p_1 + 0\ \mathbf p_1' ) \ u^1 + \\ (-3\ &amp;\mathbf p_0 - 2\ \mathbf p_0' + 3\ \mathbf p_1 - 1\ \mathbf p_1' ) \ u^2 + \\ ( 2\ &amp;\mathbf p_0 + 1\ \mathbf p_0' - 2\ \mathbf p_1 + 1\ \mathbf p_1' ) \ u^3 \\ \\ \end{aligned}$$</code></p>
+<p>Which lets us write the equation as two matrix-vector multiplies:
+<code>$$f(u)= \begin{bmatrix} u^0 &amp; u^1 &amp; u^2 &amp; u^3 \end{bmatrix} \begin{bmatrix} 1&amp;0&amp;0&amp;0\\ 0&amp;1&amp;0&amp;0\\ -3&amp;-2&amp;3&amp;-1\\ 2&amp;1&amp;-2&amp;1 \end{bmatrix} \begin{bmatrix} \mathbf p_0 \\ \mathbf p_0' \\ \mathbf p_1 \\ \mathbf p_1' \end{bmatrix}$$</code>
+This is one of the few times in class where we actually do a left-multiply of a row vector with a matrix.</p>
+<h2 id="basis-functions">Basis Functions</h2>
+<p>We can re-organize the equations from the previous box to group terms by control points, rather than by parameter powers. Note that this is just the equation above, just with the terms regrouped:
+<code>$$\begin{aligned} f(u) = (1-3u^2+2u^3) &amp; \ \mathbf p_0 + \\ (u-2u^2+u^3) &amp; \ \mathbf p_0' + \\ (3 u^2-2u^3) &amp; \ \mathbf p_1 + \\ (-u^2+u^3) &amp; \ \mathbf p_1' \end{aligned}$$</code></p>
+<p>Notice that we now have a function of $u$ for each control point. We could re-write this as:
+<code>$$f(u) = b_0(u)\ \mathbf p_0 + b_1(u)\ \mathbf p_0' + b_2(u)\ \mathbf p_1 + b_3(u)\ \mathbf p_1'$$</code>
+These new functions are called <strong>basis functions</strong>.</p>
+<p>Basis functions are a very convenient way to write curve equations.</p>
+<p>Polynomial curves can be written as basis functions. Writing them this way makes it clear that we are taking a linear combination of the control points, where the amounts of the combination are determined by the (potentially non-linear) basis functions.</p>
+<h2 id="practice-with-hermites">Practice with Hermites</h2>
+<p>To check that you can use this, try to compute the following:</p>
+<p>Consider a cubic curve that has its beginning (i.e., $u=0$) at the point (1,1), and its end at the point (4,3). The derivative at the beginning is (0,3) and the derivative at the end is (3,0). Can you sketch what this curve looks like? We know where the curve starts, we know what direction the curve goes at the beginning, we know where the curve ends, and the know the direction it is going when it gets there. From this we can &ldquo;sketch&rdquo; - connecting these things, guessing what happens in between. Here is a sketch (and it <em>is</em> a sketch - when I created the curve I exaggerated the derivative magnitudes):</p>
+
+        <a href="../../drawings/hermite1.png">
+            <img src="../../drawings/hermite1.png" />
+        </a>
+
+
+<p>Back in the days before online assignments and exams, we asked students to do a lot of curve sketching (remember pencil and paper?). It is important to have an intuition for what the curves should look like. It is a little tricker for Hermite curves because the scale of the derivative is not clear.</p>
+<p>Since you probably peeked at my sketch before you tried the last one, here is another. The endpoints are the same (1,1) and (4,3), but the derivatives are (3,0) and (3,3). Draw a sketch.</p>
+<p>It is too hard to collect your sketches in a workbook. What we can do is ask you to compute the value (position) of this curve at $u=0.5$. You&rsquo;ll need to use the equations above. Notice that you don&rsquo;t need to convert the curve to canonical form. You can just use the basis functions. Put your answer into <a href="../../for_students/05-04-01.txt" class="for_students">05-04-01.txt</a>.</p>
+<iframe
+    title="05-04-01"
+    src="../../for_students/05-04-01.txt"
+    class="includebox"
+    width="100%"
+    height="100%"
+    scrolling="no"
+    frameborder="0"
+></iframe>
+
+<h2 id="other-cubic-forms">Other Cubic Forms?</h2>
+<p>The Hermite form - value and 1st derivative at both ends - is one convenient way to specify an interpolating cubic.</p>
+<p>You might wonder - what about other options? Other things could work:</p>
+<ol>
+<li>Specify 4 points to interpolate ($u=0$, $u=1/3$, $u=2/3$, and $u=1$)</li>
+<li>Specify all the derivatives at the beginning</li>
+<li>Specify the first and second derivatives at the beginning and the positions at both ends</li>
+<li>Specify the positions at the beginning, end, and middle ($u=.5$), and the derivative at the middle</li>
+<li>And many others</li>
+</ol>
+<p>All of these make nice practice problems for understanding how to derive curve forms. We used to do these in graphics class - but don&rsquo;t worry, we won&rsquo;t make you do the derivations now.</p>
+<p>What is important is that a few forms turn out to be very useful. And we&rsquo;ll just use those.</p>
+<p>For interpolation Hermite forms are very useful because they give use nice control and easy $C(1)$ continuity (we can specify positions and derivative to match the neighboring segments).</p>
+<p>If you&rsquo;re wondering, curve #1 (interpolate 4 points) turns out to be less useful than Hermites. While it seems nice to specify 4 points to interpolate, it is more useful to be able to control the derivatives to get continuity. If we need to interpolate more points, we usually use more segments. On the <a href="../../docs/5/" class="Next__Page">next page</a> we will learn about a way to adapt Hermite forms to do point interpolation.</p>
+<h2 id="more-interpolation">More Interpolation</h2>
+<p>Cardinal splines are just one way to make cubics interpolate a list of points. They are nice because they are C(1), they are local (each piece of the curve only depends on the 4 neighboring points), and they are relatively easy to understand. (yes, compared to other things, they are simple)</p>
+<p>Cubics can also be used to create a C(2) curve that interpolates a list of points. This is sometimes called a <em>natural spline.</em> It turns out that it has a physical analogy to how smooth curves were drawn before computers: if you take a piece of metal and bend it to pass through a set of points, it has this shape. We&rsquo;ll discuss natural splines in lecture briefly, but they are tricky because they are not local. The shape of the curve at any parameter depends on all of the points.</p>
+<p>Natural cubic splines are described in 15.5.1 of the book. The book doesn&rsquo;t mention that we typically prefer to specify derivatives at the beginning and end, which means we need to do some complicated math to figure things out.</p>
+<p><a href="../../docs/5/" class="Next__Page">Next: Cardinal Cubics and Interpolation </a></p>
+
+            
+
+
+        <div class="page-rubric-container">
+    <details class="page__rubric">
+    <summary>Page 4 Rubric (2 points total)</summary>
+    <br/>
+    <div class="page-rubric-grid">
+            <div class="page-rubric-grid-header rubric-box-regular">Points (2):</div><div class="page-rubric-grid-box rubric-box-regular">Box 05-04-01</div>
+                <div class="page-rubric-grid-points rubric-box-regular">2 pt</div>
+                <div class="page-rubric-grid-desc rubric-box-regular">evaluate Hermite</div></div>
+    </details>
+    </div>
+			
+			
+		</div>
+	</article>
+</main>
+
+                </div>
+                <div class="sidebar">
+<h2 class="Side_Title">Workbook 5: Curves in 2D</h2>
+<p class="Side__Note">Pages:</p>
+<ul class="Side__List">
+    <li class="Side__Item Side__Unselected"><a href="../../">Index (CS559 Workbook 5: Curves in 2D)</a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/1/">1: Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/2/">2: Piecewise Parameteric Curves and Continuity </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/3/">3: Cubics </a></li>
+        <li class="Side__Item Side__Selected"> 4: Interpolation and Hermite Cubics </li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/5/">5: Cardinal Cubics and Interpolation </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/6/">6: Bézier Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/7/">7: DeCastlejau Constructions </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/8/">8: Bézier Cubics </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/9/">9: Béziers in APIs </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/10/">10: Arc-Length Parameterizations </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/11/">11: Drawing Curves </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/12/">12: Curve review </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/13/">13: The Train: Intro </a></li>
+        <li class="Side__Item Side__Unselected"> <a href="../../docs/14/">14: The Train: Assignment </a></li>
+</ul>
+</div>
+</div>
+    </body>
+</html>
