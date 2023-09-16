@@ -1,0 +1,7 @@
+Advanced Thing: 
+when the car saw the stopsign on the road, they will stop util there is no incoming car from left side
+
+Helicopter stop at the top of skyscrapers
+
+The quadopter has a complex route from groud to sky and back and forth; Also, there is a pilot 
+on the quadopter with cool waving hairs

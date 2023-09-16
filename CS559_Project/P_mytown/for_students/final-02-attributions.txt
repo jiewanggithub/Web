@@ -1,0 +1,16 @@
+List all attributions here, this include "self-attributions":
+
+shader from glsl sandbox
+https://glslsandbox.com/e#80456.0
+
+horse and wolf obj model from https://free3d.com/
+
+Helicopter from course staff
+simple house from course staff
+swing from course staff
+roundabout from course staff
+
+self attributions
+red car, trees, skyscrapers, stopsign, roads, swingrides, jumpride, pilot, quadopter
+
+all texures from google images

@@ -1,0 +1,18 @@
+Three different behaviors that you made:
+1. car stop in front of stop sign
+2. quadcopter with cool pilots take off and lay off 
+3. jumpride moving up and down
+4. swingride rotating 
+
+One behavior that is not simple:
+Not simple: car stop infront of stop sign
+
+Animated Articulated Figure:
+Articulated: jumpride, swingride, quadcopter, pilot
+
+Other Behaviors that you made: (backup in case something above doesn't count)
+- chaning the helicopter take off and lay off location
+- car stop infront of stop sign
+- swing ride rotating
+- jumride moving up and down
+

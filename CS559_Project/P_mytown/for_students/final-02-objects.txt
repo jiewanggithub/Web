@@ -1,0 +1,30 @@
+(Required) Two kinds of objects created for this assignment:
+1. bulidngs
+2. roads
+3. quadcopter
+
+(Required) Five other kinds of objects that you created (possibly in previous assignments):
+3. swingride
+4. shader
+5. quadcopter
+6. jumpride
+7. trees
+
+(Optional) Backup Objects (more objects that you created, in case the ones above don't count):
+- ???
+- ???
+- ???
+
+At least on of each type of object:
+Building/structure: skyscrapers, swingride,roundabout, jumpride
+Vehicle: red car, quadcopter with pilot
+Natural Element: tree, wolf
+
+Object loaded from a model file:
+Model: horse and wolf
+
+An object with a shader that you wrote:
+ShaderObj: a big screen on the side road
+
+Other Objects that you would like to note:
+???
