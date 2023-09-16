@@ -17,7 +17,7 @@ import { Skyscraper } from "../for_students/skyscraper.js";
 import { Wolf } from "../for_students/wolf.js";
 import { Quadcopter } from "../for_students/quadcopter.js";
 import { GrSwingRide } from "../for_students/swingride.js";
-import { GrColoredRoundabout } from "../for_students/Roundabout.js";
+import { GrColoredRoundabout } from "../for_students/roundabout.js";
 import { GrJumpRide } from "../for_students/jumpride.js";
 import { GrSimpleSwing } from "../for_students/swing.js";
 import { CircularTrack, EmptyTrack, LinearTrack, TrackCar, TrackCube, stopsign } from "../for_students/track.js";
